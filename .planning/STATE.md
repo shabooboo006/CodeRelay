@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-04-01T18:37:53.877Z"
-last_activity: 2026-04-02 -- Phase 02 Plan 01 completed
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-04-01T18:49:45.779Z"
+last_activity: 2026-04-02 -- Phase 02 Plan 02 completed
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -26,30 +26,36 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 02 (usage-monitoring-readiness) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-04-02 -- Phase 02 Plan 01 completed
+Last activity: 2026-04-02 -- Phase 02 Plan 02 completed
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: 8min
-- Total execution time: 0.1 hours
+- Total plans completed: 2
+- Average duration: 6min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 02 | 1 | 8min | 8min |
+| 02 | 2 | 12min | 6min |
 
 **Recent Trend:**
 
-- Last 5 plans: 8min
-- Trend: Stable
+- Last 5 plans: 8min, 4min
+- Trend: Improving
+
+**Recent Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 02-usage-monitoring-readiness P02 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -63,6 +69,8 @@ Recent decisions affecting current work:
 - Phase 6: Treat Codex App close/relaunch/resume as a later technical-validation track.
 - [Phase 02]: Keep monitoring snapshots in a versioned JSON file under Application Support so relaunches preserve last-known usage truth without new dependencies.
 - [Phase 02]: Expose full usage windows on the active account row and reduce alternate rows to typed readiness summaries with explicit unknown, stale, and error states.
+- [Phase 02-usage-monitoring-readiness]: Keep the usage probe scoped strictly to the managed account home and never fall back to ambient ~/.codex state.
+- [Phase 02-usage-monitoring-readiness]: Preserve cached windows as explicit .cache/.stale snapshots when refresh fails, but surface missing credentials without cache as unknown rather than fabricated usage.
 
 ### Pending Todos
 
@@ -77,6 +85,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-01T18:37:53.875Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-04-01T18:49:45.777Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
