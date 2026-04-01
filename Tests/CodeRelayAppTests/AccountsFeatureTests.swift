@@ -79,6 +79,161 @@ import Testing
         #expect(try store.listAccounts().count == 1)
     }
 
+    @MainActor
+    @Test
+    func Phase2_accountsFeature_loadsCachedMonitoringSnapshots() throws {
+        let defaults = try Self.makeDefaults("phase2-cached-load")
+        let account = Self.makeAccount(email: "active@example.com")
+        defaults.set(account.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let usageStore = StubManagedAccountUsageStore(snapshots: [
+            Self.makeSnapshot(
+                accountID: account.id,
+                fiveHourUsedPercent: 72,
+                weeklyUsedPercent: 38,
+                status: .fresh,
+                source: .cache)
+        ])
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [account]),
+            usageStore: usageStore))
+
+        feature.loadInitialState()
+
+        let row = try #require(feature.state.rows.first)
+        #expect(row.isActive)
+        #expect(row.fiveHourWindow?.usedPercent == 72)
+        #expect(row.weeklyWindow?.usedPercent == 38)
+        #expect(row.usageSource == .cache)
+        #expect(row.usageStatus == .fresh)
+        #expect(row.lastUsageRefreshAt != nil)
+    }
+
+    @MainActor
+    @Test
+    func Phase2_accountsFeature_refreshesAllManagedAccounts() async throws {
+        let defaults = try Self.makeDefaults("phase2-refresh")
+        let alpha = Self.makeAccount(email: "alpha@example.com")
+        let beta = Self.makeAccount(email: "beta@example.com")
+        let zeta = Self.makeAccount(email: "zeta@example.com")
+        defaults.set(beta.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let refreshService = StubCodexUsageRefreshService(resultsByAccountID: [
+            alpha.id: .init(
+                accountID: alpha.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: alpha.id,
+                    fiveHourUsedPercent: 24,
+                    weeklyUsedPercent: 10,
+                    status: .fresh,
+                    source: .managedHomeOAuth),
+                status: .fresh,
+                source: .managedHomeOAuth,
+                message: nil),
+            beta.id: .init(
+                accountID: beta.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: beta.id,
+                    fiveHourUsedPercent: 41,
+                    weeklyUsedPercent: 19,
+                    status: .fresh,
+                    source: .managedHomeOAuth),
+                status: .fresh,
+                source: .managedHomeOAuth,
+                message: nil),
+            zeta.id: .init(
+                accountID: zeta.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: zeta.id,
+                    fiveHourUsedPercent: 81,
+                    weeklyUsedPercent: 57,
+                    status: .fresh,
+                    source: .managedHomeOAuth),
+                status: .fresh,
+                source: .managedHomeOAuth,
+                message: nil)
+        ])
+        let usageStore = StubManagedAccountUsageStore()
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [zeta, beta, alpha]),
+            usageStore: usageStore,
+            refreshService: refreshService))
+
+        try await feature.perform(.refreshMonitoring)
+
+        #expect(refreshService.requestedEmails == [
+            "alpha@example.com",
+            "beta@example.com",
+            "zeta@example.com"
+        ])
+        #expect(try usageStore.listSnapshots().count == 3)
+
+        let active = try #require(feature.state.rows.first(where: { $0.id == beta.id }))
+        #expect(active.isActive)
+        #expect(active.fiveHourWindow?.usedPercent == 41)
+        #expect(active.weeklyWindow?.usedPercent == 19)
+
+        let alternate = try #require(feature.state.rows.first(where: { $0.id == alpha.id }))
+        #expect(alternate.alternateReadiness?.status == .fresh)
+        #expect(alternate.alternateReadiness?.fiveHourRemainingPercent == 76)
+        #expect(feature.state.message == "Usage refreshed for 3 accounts.")
+    }
+
+    @MainActor
+    @Test
+    func Phase2_accountsFeature_preservesStaleSnapshotsWhenRefreshFails() async throws {
+        let defaults = try Self.makeDefaults("phase2-stale-fallback")
+        let active = Self.makeAccount(email: "active@example.com")
+        let alternate = Self.makeAccount(email: "alternate@example.com")
+        defaults.set(active.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let cachedSnapshot = Self.makeSnapshot(
+            accountID: active.id,
+            fiveHourUsedPercent: 88,
+            weeklyUsedPercent: 44,
+            status: .fresh,
+            source: .cache)
+        let usageStore = StubManagedAccountUsageStore(snapshots: [cachedSnapshot])
+        let refreshService = StubCodexUsageRefreshService(resultsByAccountID: [
+            active.id: .init(
+                accountID: active.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: active.id,
+                    fiveHourUsedPercent: 88,
+                    weeklyUsedPercent: 44,
+                    status: .stale,
+                    source: .cache,
+                    lastErrorDescription: "timed out"),
+                status: .stale,
+                source: .cache,
+                message: "timed out"),
+            alternate.id: .init(
+                accountID: alternate.id,
+                snapshot: nil,
+                status: .error,
+                source: .managedHomeOAuth,
+                message: "unauthorized")
+        ])
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [active, alternate]),
+            usageStore: usageStore,
+            refreshService: refreshService))
+
+        try await feature.perform(.refreshMonitoring)
+
+        #expect(feature.state.rows.count == 2)
+        let activeRow = try #require(feature.state.rows.first(where: { $0.id == active.id }))
+        #expect(activeRow.fiveHourWindow?.usedPercent == 88)
+        #expect(activeRow.usageStatus == .stale)
+        #expect(activeRow.usageSource == .cache)
+        let alternateRow = try #require(feature.state.rows.first(where: { $0.id == alternate.id }))
+        #expect(alternateRow.alternateReadiness?.status == .error)
+        #expect(feature.state.message == "Usage refresh completed with stale or error results.")
+    }
+
     private static func makeDefaults(_ suffix: String) throws -> UserDefaults {
         let suite = "AccountsFeatureTests.\(suffix)"
         let defaults = try #require(UserDefaults(suiteName: suite))
@@ -102,10 +257,12 @@ import Testing
     private static func makeServices(
         defaults: UserDefaults,
         store: StubManagedAccountStore,
+        usageStore: StubManagedAccountUsageStore = StubManagedAccountUsageStore(),
         managedHomeSafety: StubManagedHomeSafety = StubManagedHomeSafety(),
         loginRunner: StubCodexLoginRunner = StubCodexLoginRunner(),
         identityReader: StubCodexIdentityReader = StubCodexIdentityReader(identity: ManagedAccountIdentity(email: "new@example.com")),
-        detector: StubCredentialStoreDetector = StubCredentialStoreDetector())
+        detector: StubCredentialStoreDetector = StubCredentialStoreDetector(),
+        refreshService: StubCodexUsageRefreshService = StubCodexUsageRefreshService())
         -> AppContainer.Services
     {
         AppContainer.Services(
@@ -113,17 +270,74 @@ import Testing
             fileManager: .default,
             userDefaults: defaults,
             managedAccountStore: store,
+            managedAccountUsageStore: usageStore,
             accountProjection: DefaultAccountProjection(),
             managedHomeSafety: managedHomeSafety,
             codexLoginRunner: loginRunner,
             codexIdentityReader: identityReader,
-            credentialStoreDetector: detector)
+            credentialStoreDetector: detector,
+            codexUsageRefreshService: refreshService)
+    }
+
+    private static func makeSnapshot(
+        accountID: UUID,
+        fiveHourUsedPercent: Double,
+        weeklyUsedPercent: Double,
+        status: UsageProbeStatus,
+        source: UsageProbeSource,
+        lastErrorDescription: String? = nil)
+        -> ManagedAccountUsageSnapshot
+    {
+        ManagedAccountUsageSnapshot(
+            accountID: accountID,
+            fiveHourWindow: RateWindow(
+                usedPercent: fiveHourUsedPercent,
+                windowMinutes: 300,
+                resetsAt: Date(timeIntervalSince1970: 1_775_069_593),
+                resetDescription: "in 35m"),
+            weeklyWindow: RateWindow(
+                usedPercent: weeklyUsedPercent,
+                windowMinutes: 10_080,
+                resetsAt: Date(timeIntervalSince1970: 1_775_155_993),
+                resetDescription: "in 6d"),
+            updatedAt: Date(timeIntervalSince1970: 1_775_069_593),
+            source: source,
+            status: status,
+            lastErrorDescription: lastErrorDescription)
     }
 }
 
 private struct UpsertCall {
     let account: AuthenticatedManagedAccount
     let existingAccountID: UUID?
+}
+
+private final class StubManagedAccountUsageStore: ManagedAccountUsageStore, @unchecked Sendable {
+    var snapshots: [ManagedAccountUsageSnapshot]
+
+    init(snapshots: [ManagedAccountUsageSnapshot] = []) {
+        self.snapshots = snapshots
+    }
+
+    func listSnapshots() throws -> [ManagedAccountUsageSnapshot] {
+        self.snapshots.sorted { $0.accountID.uuidString < $1.accountID.uuidString }
+    }
+
+    func snapshot(for accountID: UUID) throws -> ManagedAccountUsageSnapshot? {
+        self.snapshots.first { $0.accountID == accountID }
+    }
+
+    func upsert(_ snapshot: ManagedAccountUsageSnapshot) throws {
+        if let index = self.snapshots.firstIndex(where: { $0.accountID == snapshot.accountID }) {
+            self.snapshots[index] = snapshot
+        } else {
+            self.snapshots.append(snapshot)
+        }
+    }
+
+    func removeSnapshot(for accountID: UUID) throws {
+        self.snapshots.removeAll { $0.accountID == accountID }
+    }
 }
 
 private final class StubManagedAccountStore: ManagedAccountStore, @unchecked Sendable {
@@ -228,6 +442,30 @@ private struct StubCredentialStoreDetector: CredentialStoreDetector, Sendable {
     func detectSupport(in scope: CodexHomeScope) throws -> AccountSupportState {
         _ = scope
         return self.supportState
+    }
+}
+
+private final class StubCodexUsageRefreshService: CodexUsageRefreshService, @unchecked Sendable {
+    var resultsByAccountID: [UUID: ManagedAccountUsageRefreshResult]
+    var requestedEmails: [String] = []
+
+    init(resultsByAccountID: [UUID: ManagedAccountUsageRefreshResult] = [:]) {
+        self.resultsByAccountID = resultsByAccountID
+    }
+
+    func refresh(
+        account: ManagedAccount,
+        cachedSnapshot: ManagedAccountUsageSnapshot?)
+        async -> ManagedAccountUsageRefreshResult
+    {
+        _ = cachedSnapshot
+        self.requestedEmails.append(account.email)
+        return self.resultsByAccountID[account.id] ?? ManagedAccountUsageRefreshResult(
+            accountID: account.id,
+            snapshot: nil,
+            status: .unknown,
+            source: .unknown,
+            message: "missing stub")
     }
 }
 
