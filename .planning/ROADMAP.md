@@ -30,7 +30,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. User can review each managed account's identity, last authentication time, live/active state, and switching-support status.
   3. User can choose which managed account is active, re-authenticate an existing account without duplication, and remove an account no longer needed.
   4. User can tell which managed accounts are safe candidates for later one-click switching before switch automation is enabled.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] `01-01-PLAN.md` — Bootstrap the Swift package, Phase 1 contracts, and Wave 0 test scaffolds.
+- [ ] `01-02-PLAN.md` — Implement the core managed-account registry, projection logic, and bounded removal safety.
+- [ ] `01-03-PLAN.md` — Implement scoped Codex enrollment/support detection and the thin account-management feature.
 
 ### Phase 2: Usage Monitoring & Readiness
 **Goal**: Users can trust active-account usage signals and compare alternate-account readiness before any destructive switch action.
@@ -90,7 +94,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Managed Account Foundation | 0/TBD | Not started | - |
+| 1. Managed Account Foundation | 0/3 | Not started | - |
 | 2. Usage Monitoring & Readiness | 0/TBD | Not started | - |
 | 3. Threshold Warnings | 0/TBD | Not started | - |
 | 4. Safe Account Switch Transactions | 0/TBD | Not started | - |
