@@ -47,7 +47,7 @@ Plans:
   3. User can inspect alternate managed accounts for latest readiness plus remaining headroom or unknown state.
 **Plans**: 3 plans
 Plans:
-- [ ] `02-01-PLAN.md` — Add explicit monitoring domain models, persisted snapshots, and readiness-aware account projection.
+- [x] `02-01-PLAN.md` — Add explicit monitoring domain models, persisted snapshots, and readiness-aware account projection.
 - [ ] `02-02-PLAN.md` — Implement managed-home OAuth usage fetch plus typed refresh fallback results.
 - [ ] `02-03-PLAN.md` — Wire manual refresh and alternate readiness into the existing accounts surface.
 
@@ -100,7 +100,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Managed Account Foundation | 3/3 | Manual UAT pending | - |
-| 2. Usage Monitoring & Readiness | 3/3 | Planned | - |
+| 2. Usage Monitoring & Readiness | 1/3 | In Progress | - |
 | 3. Threshold Warnings | 0/TBD | Not started | - |
 | 4. Safe Account Switch Transactions | 0/TBD | Not started | - |
 | 5. CLI Relaunch & Continuity UX | 0/TBD | Not started | - |

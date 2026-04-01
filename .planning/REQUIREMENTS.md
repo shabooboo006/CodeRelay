@@ -16,11 +16,11 @@
 
 ### Monitoring
 
-- [ ] **MON-01**: User can view the current 5-hour sliding-window usage for the active Codex account.
-- [ ] **MON-02**: User can view the current weekly usage for the active Codex account.
-- [ ] **MON-03**: User can view reset timing, last refresh time, and data-source status for the active Codex account.
+- [x] **MON-01**: User can view the current 5-hour sliding-window usage for the active Codex account.
+- [x] **MON-02**: User can view the current weekly usage for the active Codex account.
+- [x] **MON-03**: User can view reset timing, last refresh time, and data-source status for the active Codex account.
 - [ ] **MON-04**: User can manually refresh account usage and see stale or error states instead of silent failure.
-- [ ] **MON-05**: User can inspect alternate managed accounts with latest known readiness state and remaining headroom or unknown status.
+- [x] **MON-05**: User can inspect alternate managed accounts with latest known readiness state and remaining headroom or unknown status.
 
 ### Warnings
 
@@ -85,11 +85,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACCT-04 | Phase 1 | Pending |
 | ACCT-05 | Phase 1 | Pending |
 | ACCT-06 | Phase 1 | Pending |
-| MON-01 | Phase 2 | Pending |
-| MON-02 | Phase 2 | Pending |
-| MON-03 | Phase 2 | Pending |
+| MON-01 | Phase 2 | Complete |
+| MON-02 | Phase 2 | Complete |
+| MON-03 | Phase 2 | Complete |
 | MON-04 | Phase 2 | Pending |
-| MON-05 | Phase 2 | Pending |
+| MON-05 | Phase 2 | Complete |
 | WARN-01 | Phase 3 | Pending |
 | WARN-02 | Phase 3 | Pending |
 | WARN-03 | Phase 3 | Pending |
@@ -112,4 +112,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after roadmap creation*
+*Last updated: 2026-04-02 after Phase 02-01 execution*
