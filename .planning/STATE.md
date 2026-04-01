@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 01 implementation landed, but automated verification is blocked by the local Swift toolchain mismatch
-last_updated: "2026-04-01T16:57:10Z"
-last_activity: 2026-04-01 -- Phase 01 code and summaries created; verification blocked by local Swift toolchain mismatch
+stopped_at: Phase 01 automated verification passes; manual UAT and release packaging are the remaining follow-through
+last_updated: "2026-04-01T17:47:49Z"
+last_activity: 2026-04-02 -- Swift build/test passing, Phase 2 plan created, release packaging in progress
 progress:
   total_phases: 6
   completed_phases: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Keep a macOS developer continuously productive in Codex by making account exhaustion visible early and account switching fast, explicit, and low-friction.
-**Current focus:** Phase 01 verification blocker — restore working Swift/Xcode toolchain and rerun build/test
+**Current focus:** Release packaging plus remaining manual UAT for the managed enrollment flow
 
 ## Current Position
 
 Phase: 01 (managed-account-foundation) — EXECUTION LANDED
 Plan: 3 of 3
-Status: Verification blocked by local SwiftPM / SDK mismatch
-Last activity: 2026-04-01 -- Phase 01 code, summaries, and verification artifact created
+Status: Automated verification passing; manual UAT pending
+Last activity: 2026-04-02 -- build/test green after Xcode repair; release packaging prepared
 
 Progress: [██░░░░░░░░] 15%
 
@@ -64,12 +64,11 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Repair the local Swift / Xcode toolchain so `swift build` and `swift test` can run inside `CodeRelay/`.
 - Run the real managed account add / set-active / re-auth / remove flow once the toolchain is fixed.
+- Publish a downloadable macOS release artifact set for the current alpha state.
 
 ### Blockers/Concerns
 
-- The machine has no full Xcode, and its current Command Line Tools cannot even build a fresh Swift package because the SDK and compiler are mismatched.
 - Unsupported or unverified credential storage must be surfaced before one-click switching is trusted.
 - Usage data is estimate-based, so monitoring and warnings must preserve freshness and source labeling.
 - CLI relaunch guarantees apply only to CodeRelay-managed Codex sessions; unmanaged terminals need a guided fallback.

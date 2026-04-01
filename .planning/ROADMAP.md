@@ -35,7 +35,7 @@ Plans:
 - [x] `01-01-PLAN.md` — Bootstrap the Swift package, Phase 1 contracts, and Wave 0 test scaffolds.
 - [x] `01-02-PLAN.md` — Implement the core managed-account registry, projection logic, and bounded removal safety.
 - [x] `01-03-PLAN.md` — Implement scoped Codex enrollment/support detection and the thin account-management feature.
-**Verification:** Implementation landed, but automated Swift verification is blocked locally by a broken CLT/Xcode toolchain. See `01-VERIFICATION.md`.
+**Verification:** Automated Swift verification now passes locally; real managed-enrollment UAT is still pending. See `01-VERIFICATION.md`.
 
 ### Phase 2: Usage Monitoring & Readiness
 **Goal**: Users can trust active-account usage signals and compare alternate-account readiness before any destructive switch action.
@@ -99,7 +99,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Managed Account Foundation | 3/3 | Verification blocked | - |
+| 1. Managed Account Foundation | 3/3 | Manual UAT pending | - |
 | 2. Usage Monitoring & Readiness | 3/3 | Planned | - |
 | 3. Threshold Warnings | 0/TBD | Not started | - |
 | 4. Safe Account Switch Transactions | 0/TBD | Not started | - |

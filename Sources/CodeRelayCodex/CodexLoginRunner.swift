@@ -61,15 +61,23 @@ public protocol CodexLoginRunner: Sendable {
     func login(request: CodexLoginRequest) async throws -> CodexLoginResult
 }
 
-public struct DefaultCodexLoginRunner: CodexLoginRunner, Sendable {
+public struct DefaultCodexLoginRunner: CodexLoginRunner, @unchecked Sendable {
     public typealias Executor = @Sendable (CodexLoginCommand, TimeInterval) async throws -> String
+
+    private static let liveExecutor: Executor = { command, timeout in
+        try await Self.executeProcess(command: command, timeout: timeout)
+    }
 
     private let fileManager: FileManager
     private let executor: Executor
 
+    public init(fileManager: FileManager = .default) {
+        self.init(fileManager: fileManager, executor: Self.liveExecutor)
+    }
+
     public init(
         fileManager: FileManager = .default,
-        executor: @escaping Executor = Self.executeProcess)
+        executor: @escaping Executor)
     {
         self.fileManager = fileManager
         self.executor = executor

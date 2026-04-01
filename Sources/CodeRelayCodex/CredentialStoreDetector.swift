@@ -6,7 +6,7 @@ public protocol CredentialStoreDetector: Sendable {
     func detectSupport(in scope: CodexHomeScope) throws -> AccountSupportState
 }
 
-public struct DefaultCredentialStoreDetector: CredentialStoreDetector, Sendable {
+public struct DefaultCredentialStoreDetector: CredentialStoreDetector, @unchecked Sendable {
     private let fileManager: FileManager
     private let identityReader: any CodexIdentityReader
 

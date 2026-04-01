@@ -5,7 +5,7 @@ public protocol CodexIdentityReader: Sendable {
     func readIdentity(in scope: CodexHomeScope) throws -> ManagedAccountIdentity?
 }
 
-public struct DefaultCodexIdentityReader: CodexIdentityReader, Sendable {
+public struct DefaultCodexIdentityReader: CodexIdentityReader, @unchecked Sendable {
     private let fileManager: FileManager
 
     public init(fileManager: FileManager = .default) {

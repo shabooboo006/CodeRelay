@@ -2,9 +2,11 @@ import CodeRelayCodex
 import CodeRelayCore
 import Foundation
 
+public let defaultActiveManagedAccountIDKey = "activeManagedAccountID"
+
 @MainActor
 public final class AppContainer {
-    public static let activeManagedAccountIDKey = "activeManagedAccountID"
+    public static let activeManagedAccountIDKey = defaultActiveManagedAccountIDKey
 
     public struct Services {
         public var paths: CodeRelayPaths
@@ -22,7 +24,7 @@ public final class AppContainer {
             paths: CodeRelayPaths = CodeRelayPaths(),
             fileManager: FileManager = .default,
             userDefaults: UserDefaults = .standard,
-            activeManagedAccountIDKey: String = AppContainer.activeManagedAccountIDKey,
+            activeManagedAccountIDKey: String = defaultActiveManagedAccountIDKey,
             managedAccountStore: (any ManagedAccountStore)? = nil,
             accountProjection: (any AccountProjection)? = nil,
             managedHomeSafety: (any ManagedHomeSafety)? = nil,
