@@ -47,9 +47,9 @@ Plans:
   3. User can inspect alternate managed accounts for latest readiness plus remaining headroom or unknown state.
 **Plans**: 3 plans
 Plans:
-- [ ] `02-01-PLAN.md` — Add Phase 2 usage models, persisted snapshot cache, and readiness-aware account projection.
-- [ ] `02-02-PLAN.md` — Implement managed-home Codex usage probing plus typed refresh result/status handling.
-- [ ] `02-03-PLAN.md` — Integrate monitoring, manual refresh, and alternate readiness into the existing account-management surface.
+- [ ] `02-01-PLAN.md` — Add explicit monitoring domain models, persisted snapshots, and readiness-aware account projection.
+- [ ] `02-02-PLAN.md` — Implement managed-home OAuth usage fetch plus typed refresh fallback results.
+- [ ] `02-03-PLAN.md` — Wire manual refresh and alternate readiness into the existing accounts surface.
 
 ### Phase 3: Threshold Warnings
 **Goal**: Users get early, actionable warnings when an active account approaches exhaustion without losing control of when to switch.

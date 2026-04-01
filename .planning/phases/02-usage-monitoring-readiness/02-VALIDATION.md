@@ -2,7 +2,7 @@
 phase: 2
 slug: usage-monitoring-readiness
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-04-02
 ---
@@ -38,11 +38,12 @@ created: 2026-04-02
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 02-01-01 | 01 | 1 | MON-01, MON-02 | unit | `swift test --filter Phase2` | ✅ | ⬜ pending |
-| 02-01-02 | 01 | 1 | MON-05 | unit | `swift test --filter Phase2` | ✅ | ⬜ pending |
-| 02-02-01 | 02 | 2 | MON-01, MON-02, MON-03 | integration | `swift test --filter Phase2` | ✅ | ⬜ pending |
-| 02-02-02 | 02 | 2 | MON-04, MON-05 | integration | `swift test --filter Phase2` | ✅ | ⬜ pending |
-| 02-03-01 | 03 | 3 | MON-03, MON-04, MON-05 | integration | `swift test --filter Phase2` | ✅ | ⬜ pending |
+| 02-01-01 | 01 | 1 | MON-01, MON-02, MON-03 | unit | `swift test --filter Phase2_managedAccountUsageStore` | ✅ | ⬜ pending |
+| 02-01-02 | 01 | 1 | MON-05 | unit | `swift test --filter Phase2_accountProjection` | ✅ | ⬜ pending |
+| 02-02-01 | 02 | 2 | MON-01, MON-02, MON-03 | integration | `swift test --filter Phase2_codexUsageFetcher` | ✅ | ⬜ pending |
+| 02-02-02 | 02 | 2 | MON-03, MON-04, MON-05 | integration | `swift test --filter Phase2_codexUsageRefreshService` | ✅ | ⬜ pending |
+| 02-03-01 | 03 | 3 | MON-03, MON-04, MON-05 | integration | `swift test --filter Phase2_accountsFeature` | ✅ | ⬜ pending |
+| 02-03-02 | 03 | 3 | MON-01, MON-02, MON-03, MON-05 | integration | `swift test --filter Phase2_accountsFeature` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
