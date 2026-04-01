@@ -4,7 +4,7 @@
 
 CodeRelay is a macOS desktop app for heavy Codex users who need to keep working after a single Plus account approaches its sliding-window or weekly usage limits. It manages multiple Codex accounts, monitors account usage in near real time, warns before depletion, and gives the user a one-click path to switch into another managed account without manually rebuilding their workflow.
 
-The product is intentionally narrower than generic provider switchers: it starts from lessons in CodexBar and cc-switch, but the shipped app only focuses on Codex account management, usage awareness, account switching, and workflow continuity across Codex CLI and Codex App restarts.
+The product is intentionally narrower than generic provider switchers: it starts from lessons in CodexBar and cc-switch, but the shipped app only focuses on Codex account management, usage awareness, account switching, and workflow continuity. V1 is CLI-first; Codex App restart and resume are deferred to a later technical-validation phase.
 
 ## Core Value
 
@@ -22,7 +22,7 @@ Keep a macOS developer continuously productive in Codex by making account exhaus
 - [ ] User can see current Codex 5-hour sliding-window usage, weekly usage, and reset timing for the active account.
 - [ ] User can define a low-usage warning threshold and receive a warning before an account is effectively exhausted.
 - [ ] User can confirm a one-click switch into another managed Codex account with enough remaining usage.
-- [ ] User can switch accounts with automatic shutdown and relaunch of the active Codex client, then resume the prior conversation when possible.
+- [ ] User can switch accounts with automatic shutdown and relaunch of the target Codex CLI workflow, then attempt best-effort conversation resume when possible.
 
 ### Out of Scope
 
@@ -49,8 +49,9 @@ Product expectations gathered so far:
 - The UI and implementation quality should take inspiration from CodexBar.
 - The provider abstraction should be collapsed to Codex only.
 - The switching engine should reuse or mirror the proven config-handling approach from cc-switch where appropriate.
-- When switching, the app should tell the user it will close the current Codex CLI or Codex App, relaunch the matching client for the target account, and then refresh usage state.
+- When switching, the app should tell the user what it will close and relaunch, then refresh usage state after the target account becomes active.
 - If the user was in an active Codex conversation before restart, the system should attempt to reopen that conversation via Codex resume support.
+- Codex App close/relaunch/resume is explicitly postponed into a later technical-validation track instead of being treated as a current initialization blocker.
 
 ## Constraints
 
@@ -60,6 +61,7 @@ Product expectations gathered so far:
 - **Reference Strategy**: Build from CodexBar concepts and UX, but selectively port only the Codex-relevant pieces — direct wholesale adoption would preserve too much irrelevant provider complexity.
 - **Switch Safety**: Account changes must remain explicit and user-confirmed — the product should warn automatically but not silently force account switches.
 - **Continuity**: Conversation continuity matters — restart flow must preserve or restore the prior Codex session where possible.
+- **Delivery Order**: V1 should close the loop for Codex CLI first — Codex App lifecycle automation is deferred until later technical validation reduces uncertainty.
 
 ## Key Decisions
 
@@ -70,6 +72,7 @@ Product expectations gathered so far:
 | Reuse cc-switch's Codex config-switching approach as an implementation reference, not as the app foundation | The user has already validated that config-file switching works for multiple Codex accounts | — Pending |
 | Ship warning-first account switching instead of silent auto-switching | The user wants control over when to leave the current account after being warned | — Pending |
 | Collapse the provider model to Codex-only for v1 | Narrow scope improves clarity, reduces technical drag, and aligns with the actual job to be done | — Pending |
+| Deliver Codex CLI continuity before Codex App automation | CLI capabilities are inspectable and available today; Codex App automation should be validated separately instead of blocking v1 | — Pending |
 
 ## Evolution
 
