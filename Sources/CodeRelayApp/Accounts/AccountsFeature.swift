@@ -12,6 +12,7 @@ public enum AccountsFeatureError: Error, Equatable, Sendable {
 public final class AccountsFeature: ObservableObject {
     public enum Action: Equatable, Sendable {
         case addAccount
+        case refreshMonitoring
         case setActive(UUID)
         case reauthenticate(UUID)
         case remove(UUID)
@@ -67,10 +68,12 @@ public final class AccountsFeature: ObservableObject {
     public func refresh(liveIdentity: ManagedAccountIdentity? = nil) throws {
         let resolvedLiveIdentity = liveIdentity ?? self.state.liveIdentity
         let persistedActiveManagedAccountID = self.persistedActiveManagedAccountID()
+        let usageSnapshots = try self.usageSnapshotsByAccountID()
         let projection = self.services.accountProjection.project(AccountProjectionInput(
             accounts: try self.services.managedAccountStore.listAccounts(),
             activeManagedAccountID: persistedActiveManagedAccountID,
-            liveIdentity: resolvedLiveIdentity))
+            liveIdentity: resolvedLiveIdentity,
+            usageSnapshots: usageSnapshots))
 
         self.state.rows = projection.rows
         self.state.activeManagedAccountID = projection.correctedActiveManagedAccountID
@@ -101,6 +104,8 @@ public final class AccountsFeature: ObservableObject {
         switch action {
         case .addAccount:
             try await self.addAccount()
+        case .refreshMonitoring:
+            try await self.refreshMonitoring()
         case let .setActive(accountID):
             try self.setActive(accountID)
         case let .reauthenticate(accountID):
@@ -134,6 +139,49 @@ public final class AccountsFeature: ObservableObject {
 
         self.state.message = "Managed account added."
         try self.refresh(liveIdentity: identity)
+    }
+
+    private func refreshMonitoring() async throws {
+        let accounts = try self.services.managedAccountStore.listAccounts()
+            .sorted { lhs, rhs in
+                lhs.email.localizedCaseInsensitiveCompare(rhs.email) == .orderedAscending
+            }
+
+        guard !accounts.isEmpty else {
+            self.state.message = "No managed accounts to refresh."
+            try self.refresh()
+            return
+        }
+
+        var snapshotsByAccountID = try self.usageSnapshotsByAccountID()
+        var freshCount = 0
+        var staleOrErrorCount = 0
+
+        for account in accounts {
+            let result = await self.services.codexUsageRefreshService.refresh(
+                account: account,
+                cachedSnapshot: snapshotsByAccountID[account.id])
+            let resolvedSnapshot = Self.snapshot(
+                from: result,
+                existingSnapshot: snapshotsByAccountID[account.id])
+
+            if let resolvedSnapshot {
+                try self.services.managedAccountUsageStore.upsert(resolvedSnapshot)
+                snapshotsByAccountID[account.id] = resolvedSnapshot
+            }
+
+            switch result.status {
+            case .fresh:
+                freshCount += 1
+            case .stale, .error, .unknown:
+                staleOrErrorCount += 1
+            }
+        }
+
+        try self.refresh(liveIdentity: self.state.liveIdentity)
+        self.state.message = staleOrErrorCount == 0
+            ? "Usage refreshed for \(freshCount) accounts."
+            : "Usage refresh completed with stale or error results."
     }
 
     private func setActive(_ accountID: UUID) throws {
@@ -191,6 +239,13 @@ public final class AccountsFeature: ObservableObject {
         return account
     }
 
+    private func usageSnapshotsByAccountID() throws -> [UUID: ManagedAccountUsageSnapshot] {
+        try self.services.managedAccountUsageStore.listSnapshots()
+            .reduce(into: [:]) { partialResult, snapshot in
+                partialResult[snapshot.accountID] = snapshot
+            }
+    }
+
     private func persistedActiveManagedAccountID() -> UUID? {
         guard let rawValue = self.services.userDefaults.string(forKey: self.services.activeManagedAccountIDKey) else {
             return nil
@@ -214,5 +269,28 @@ public final class AccountsFeature: ObservableObject {
             return description
         }
         return String(describing: error)
+    }
+
+    private static func snapshot(
+        from result: ManagedAccountUsageRefreshResult,
+        existingSnapshot: ManagedAccountUsageSnapshot?)
+        -> ManagedAccountUsageSnapshot?
+    {
+        if let snapshot = result.snapshot {
+            return snapshot
+        }
+
+        guard result.status != .fresh else {
+            return existingSnapshot
+        }
+
+        return ManagedAccountUsageSnapshot(
+            accountID: result.accountID,
+            fiveHourWindow: existingSnapshot?.fiveHourWindow,
+            weeklyWindow: existingSnapshot?.weeklyWindow,
+            updatedAt: .now,
+            source: result.source,
+            status: result.status,
+            lastErrorDescription: result.message)
     }
 }
