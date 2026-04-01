@@ -3,6 +3,7 @@ import Foundation
 public struct CodeRelayPaths: Equatable, Sendable {
     public static let appDirectoryName = "CodeRelay"
     public static let managedAccountsFileName = "managed-codex-accounts.json"
+    public static let managedAccountUsageFileName = "usage-snapshots.json"
     public static let managedHomesDirectoryName = "managed-codex-homes"
 
     public let applicationSupportRoot: URL
@@ -17,6 +18,10 @@ public struct CodeRelayPaths: Equatable, Sendable {
 
     public var managedAccountsStoreURL: URL {
         self.appDirectory.appendingPathComponent(Self.managedAccountsFileName)
+    }
+
+    public var managedAccountUsageStoreURL: URL {
+        self.appDirectory.appendingPathComponent(Self.managedAccountUsageFileName)
     }
 
     public var managedHomesRoot: URL {
