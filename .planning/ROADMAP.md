@@ -45,7 +45,11 @@ Plans:
   1. User can check the active account's current 5-hour usage and weekly usage.
   2. User can check reset timing, last refresh time, and probe-source status, and can refresh on demand without silent failure.
   3. User can inspect alternate managed accounts for latest readiness plus remaining headroom or unknown state.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] `02-01-PLAN.md` — Add Phase 2 usage models, persisted snapshot cache, and readiness-aware account projection.
+- [ ] `02-02-PLAN.md` — Implement managed-home Codex usage probing plus typed refresh result/status handling.
+- [ ] `02-03-PLAN.md` — Integrate monitoring, manual refresh, and alternate readiness into the existing account-management surface.
 
 ### Phase 3: Threshold Warnings
 **Goal**: Users get early, actionable warnings when an active account approaches exhaustion without losing control of when to switch.
@@ -96,7 +100,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Managed Account Foundation | 3/3 | Verification blocked | - |
-| 2. Usage Monitoring & Readiness | 0/TBD | Not started | - |
+| 2. Usage Monitoring & Readiness | 3/3 | Planned | - |
 | 3. Threshold Warnings | 0/TBD | Not started | - |
 | 4. Safe Account Switch Transactions | 0/TBD | Not started | - |
 | 5. CLI Relaunch & Continuity UX | 0/TBD | Not started | - |
