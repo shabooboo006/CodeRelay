@@ -234,6 +234,59 @@ import Testing
         #expect(feature.state.message == "Usage refresh completed with stale or error results.")
     }
 
+    @MainActor
+    @Test
+    func Phase2_accountsFeature_preservesUnknownReadinessAfterRefresh() async throws {
+        let defaults = try Self.makeDefaults("phase2-unknown-readiness")
+        let active = Self.makeAccount(email: "active@example.com")
+        let alternate = Self.makeAccount(email: "alternate@example.com")
+        defaults.set(active.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let refreshService = StubCodexUsageRefreshService(resultsByAccountID: [
+            active.id: .init(
+                accountID: active.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: active.id,
+                    fiveHourUsedPercent: 21,
+                    weeklyUsedPercent: 11,
+                    status: .fresh,
+                    source: .managedHomeOAuth),
+                status: .fresh,
+                source: .managedHomeOAuth,
+                message: nil),
+            alternate.id: .init(
+                accountID: alternate.id,
+                snapshot: nil,
+                status: .unknown,
+                source: .unknown,
+                message: "missing credentials")
+        ])
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [active, alternate]),
+            refreshService: refreshService))
+
+        try await feature.perform(.refreshMonitoring)
+
+        let alternateRow = try #require(feature.state.rows.first(where: { $0.id == alternate.id }))
+        #expect(alternateRow.alternateReadiness?.status == .unknown)
+        #expect(alternateRow.alternateReadiness?.lastRefreshedAt != nil)
+        #expect(alternateRow.usageStatus == .unknown)
+    }
+
+    @Test
+    func Phase2_accountsFeature_accountsViewContainsMonitoringCopyAndRefreshAction() throws {
+        let source = try String(contentsOf: Self.accountsViewSourceURL, encoding: .utf8)
+
+        #expect(source.contains("Button(\"Refresh Usage\")"))
+        #expect(source.contains("Text(\"5-hour usage:"))
+        #expect(source.contains("Text(\"Weekly usage:"))
+        #expect(source.contains("Text(\"Last refreshed:"))
+        #expect(source.contains("Text(\"Source:"))
+        #expect(source.contains("Text(\"Status:"))
+        #expect(source.contains("Text(\"Readiness:"))
+    }
+
     private static func makeDefaults(_ suffix: String) throws -> UserDefaults {
         let suite = "AccountsFeatureTests.\(suffix)"
         let defaults = try #require(UserDefaults(suiteName: suite))
@@ -304,6 +357,14 @@ import Testing
             source: source,
             status: status,
             lastErrorDescription: lastErrorDescription)
+    }
+
+    private static var accountsViewSourceURL: URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appending(path: "Sources/CodeRelayApp/Accounts/AccountsView.swift")
     }
 }
 
