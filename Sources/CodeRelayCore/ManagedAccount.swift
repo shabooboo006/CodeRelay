@@ -61,4 +61,8 @@ public struct ManagedAccount: Codable, Equatable, Identifiable, Sendable {
     public var managedHomeURL: URL {
         URL(fileURLWithPath: self.managedHomePath, isDirectory: true)
     }
+
+    public var accountSupportState: AccountSupportState {
+        self.switchSupport
+    }
 }
