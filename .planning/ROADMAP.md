@@ -49,7 +49,7 @@ Plans:
 Plans:
 - [x] `02-01-PLAN.md` — Add explicit monitoring domain models, persisted snapshots, and readiness-aware account projection.
 - [x] `02-02-PLAN.md` — Implement managed-home OAuth usage fetch plus typed refresh fallback results.
-- [ ] `02-03-PLAN.md` — Wire manual refresh and alternate readiness into the existing accounts surface.
+- [x] `02-03-PLAN.md` — Wire manual refresh and alternate readiness into the existing accounts surface.
 
 ### Phase 3: Threshold Warnings
 **Goal**: Users get early, actionable warnings when an active account approaches exhaustion without losing control of when to switch.
@@ -100,7 +100,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Managed Account Foundation | 3/3 | Manual UAT pending | - |
-| 2. Usage Monitoring & Readiness | 2/3 | In Progress | - |
+| 2. Usage Monitoring & Readiness | 3/3 | Complete | - |
 | 3. Threshold Warnings | 0/TBD | Not started | - |
 | 4. Safe Account Switch Transactions | 0/TBD | Not started | - |
 | 5. CLI Relaunch & Continuity UX | 0/TBD | Not started | - |
