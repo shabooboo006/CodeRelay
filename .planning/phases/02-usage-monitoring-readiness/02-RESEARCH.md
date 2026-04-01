@@ -154,7 +154,7 @@ struct AlternateAccountReadiness: Equatable, Sendable {
     let status: UsageProbeStatus
     let fiveHourRemainingPercent: Double?
     let weeklyRemainingPercent: Double?
-    let updatedAt: Date?
+    let lastRefreshedAt: Date?
 }
 ```
 
@@ -266,4 +266,3 @@ The fast loop should stay `swift test --filter Phase2`. The full loop remains `s
 | User-scripted usage fetch | Editable JS or shell probe scripts | Fixed managed-home Codex usage fetcher | Better trust and fewer support paths. |
 | UI-only refresh logic | Ad hoc `Task {}` probes inside views | Central refresh coordinator | Keeps stale/error semantics consistent. |
 | In-memory-only snapshots | Volatile state that disappears on relaunch | File-backed usage snapshot cache | Needed for alternate readiness and last refresh visibility. |
-
