@@ -19,6 +19,7 @@ final class CodeRelayAppDelegate: NSObject, NSApplicationDelegate {
         }
 
         self.runtime = runtime
+        runtime.start()
 
         let windowCoordinator = CodeRelayWindowCoordinator(feature: runtime.feature)
         let statusItemController = CodeRelayStatusItemController(
@@ -34,6 +35,11 @@ final class CodeRelayAppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] state in
                 self?.apply(state: state)
             }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        _ = notification
+        self.runtime?.stop()
     }
 
     private func apply(state: AccountsFeature.State) {

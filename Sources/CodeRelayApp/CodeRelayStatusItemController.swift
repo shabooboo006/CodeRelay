@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import SwiftUI
 
 @MainActor
 final class CodeRelayStatusItemController: NSObject {
@@ -33,24 +34,12 @@ final class CodeRelayStatusItemController: NSObject {
         let menu = NSMenu()
         menu.autoenablesItems = false
 
-        let titleItem = NSMenuItem(
-            title: CodeRelayMenuPresentation.headerTitle(for: state),
-            action: nil,
-            keyEquivalent: "")
-        titleItem.isEnabled = false
-        menu.addItem(titleItem)
-
-        for line in CodeRelayMenuPresentation.detailLines(for: state) {
-            let item = NSMenuItem(title: line, action: nil, keyEquivalent: "")
-            item.isEnabled = false
-            menu.addItem(item)
-        }
+        menu.addItem(self.makeHostedItem(
+            CodeRelayMenuSummaryView(model: CodeRelayMenuPresentation.summary(for: state))))
 
         if let message = state.message, !message.isEmpty {
-            menu.addItem(.separator())
-            let messageItem = NSMenuItem(title: message, action: nil, keyEquivalent: "")
-            messageItem.isEnabled = false
-            menu.addItem(messageItem)
+            menu.addItem(self.makeHostedItem(
+                CodeRelayMenuMessageView(message: message, isBusy: state.isBusy)))
         }
 
         menu.addItem(.separator())
@@ -66,15 +55,6 @@ final class CodeRelayStatusItemController: NSObject {
             refreshItem.isEnabled = !state.isBusy
             menu.addItem(refreshItem)
 
-            if state.rows.count > 1 {
-                let switchActiveItem = NSMenuItem(
-                    title: self.localized("menu.action.switchActive"),
-                    action: nil,
-                    keyEquivalent: "")
-                switchActiveItem.submenu = self.makeSwitchActiveMenu(state: state)
-                menu.addItem(switchActiveItem)
-            }
-
             menu.addItem(self.makeItem(
                 title: self.localized("menu.action.manageAccounts"),
                 action: #selector(self.openManagementWindow)))
@@ -88,19 +68,14 @@ final class CodeRelayStatusItemController: NSObject {
         return menu
     }
 
-    private func makeSwitchActiveMenu(state: AccountsFeature.State) -> NSMenu {
-        let menu = NSMenu()
-
-        for row in state.rows {
-            let item = NSMenuItem(title: row.email, action: #selector(self.setActiveAccount(_:)), keyEquivalent: "")
-            item.target = self
-            item.representedObject = row.id
-            item.state = row.isActive ? .on : .off
-            item.isEnabled = !row.isActive && !state.isBusy
-            menu.addItem(item)
-        }
-
-        return menu
+    private func makeHostedItem<Content: View>(_ rootView: Content) -> NSMenuItem {
+        let item = NSMenuItem()
+        let hostingView = NSHostingView(rootView: rootView)
+        hostingView.layoutSubtreeIfNeeded()
+        hostingView.frame = CGRect(origin: .zero, size: hostingView.fittingSize)
+        item.view = hostingView
+        item.isEnabled = false
+        return item
     }
 
     private func makeItem(title: String, action: Selector) -> NSMenuItem {
@@ -123,17 +98,6 @@ final class CodeRelayStatusItemController: NSObject {
     private func refreshUsage() {
         Task {
             await self.feature.run(.refreshMonitoring)
-        }
-    }
-
-    @objc
-    private func setActiveAccount(_ sender: NSMenuItem) {
-        guard let accountID = sender.representedObject as? UUID else {
-            return
-        }
-
-        Task {
-            await self.feature.run(.setActive(accountID))
         }
     }
 

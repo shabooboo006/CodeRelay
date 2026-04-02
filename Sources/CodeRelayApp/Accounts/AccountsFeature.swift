@@ -13,7 +13,11 @@ public final class AccountsFeature: ObservableObject {
     public enum Action: Equatable, Sendable {
         case addAccount
         case refreshMonitoring
+        case refreshActiveMonitoring
         case setLanguage(AppLanguage)
+        case setWarningThreshold(Double)
+        case setWarningRefreshCadence(WarningRefreshCadence)
+        case setWarningNotificationsEnabled(Bool)
         case setActive(UUID)
         case reauthenticate(UUID)
         case remove(UUID)
@@ -24,6 +28,8 @@ public final class AccountsFeature: ObservableObject {
         public var activeManagedAccountID: UUID?
         public var liveIdentity: ManagedAccountIdentity?
         public var selectedLanguage: AppLanguage
+        public var warningPreferences: WarningPreferences
+        public var activeWarning: ActiveWarning?
         public var isBusy: Bool
         public var message: String?
         public var lastAction: Action?
@@ -33,6 +39,8 @@ public final class AccountsFeature: ObservableObject {
             activeManagedAccountID: UUID? = nil,
             liveIdentity: ManagedAccountIdentity? = nil,
             selectedLanguage: AppLanguage = .defaultValue,
+            warningPreferences: WarningPreferences = .defaultValue,
+            activeWarning: ActiveWarning? = nil,
             isBusy: Bool = false,
             message: String? = nil,
             lastAction: Action? = nil)
@@ -41,6 +49,8 @@ public final class AccountsFeature: ObservableObject {
             self.activeManagedAccountID = activeManagedAccountID
             self.liveIdentity = liveIdentity
             self.selectedLanguage = selectedLanguage
+            self.warningPreferences = warningPreferences
+            self.activeWarning = activeWarning
             self.isBusy = isBusy
             self.message = message
             self.lastAction = lastAction
@@ -61,6 +71,7 @@ public final class AccountsFeature: ObservableObject {
         resolvedState.selectedLanguage = Self.resolvePreferredAppLanguage(
             rawValue: services.userDefaults.string(forKey: services.preferredAppLanguageKey))
             ?? resolvedState.selectedLanguage
+        resolvedState.warningPreferences = services.warningPreferencesStore.loadPreferences()
         self.state = resolvedState
         self.recordedActions = recordedActions
     }
@@ -73,7 +84,11 @@ public final class AccountsFeature: ObservableObject {
         }
     }
 
-    public func refresh(liveIdentity: ManagedAccountIdentity? = nil) throws {
+    public func refresh(
+        liveIdentity: ManagedAccountIdentity? = nil,
+        shouldNotifyWarning: Bool = false)
+        throws
+    {
         let resolvedLiveIdentity = liveIdentity ?? self.state.liveIdentity
         let persistedActiveManagedAccountID = self.persistedActiveManagedAccountID()
         let usageSnapshots = try self.usageSnapshotsByAccountID()
@@ -89,6 +104,8 @@ public final class AccountsFeature: ObservableObject {
         if projection.correctedActiveManagedAccountID != persistedActiveManagedAccountID {
             self.persistActiveManagedAccountID(projection.correctedActiveManagedAccountID)
         }
+
+        self.applyWarningEvaluation(shouldNotify: shouldNotifyWarning)
     }
 
     public func send(_ action: Action) {
@@ -114,8 +131,16 @@ public final class AccountsFeature: ObservableObject {
             try await self.addAccount()
         case .refreshMonitoring:
             try await self.refreshMonitoring()
+        case .refreshActiveMonitoring:
+            try await self.refreshActiveMonitoring()
         case let .setLanguage(language):
             self.setLanguage(language)
+        case let .setWarningThreshold(thresholdPercent):
+            try self.setWarningThreshold(thresholdPercent)
+        case let .setWarningRefreshCadence(refreshCadence):
+            try self.setWarningRefreshCadence(refreshCadence)
+        case let .setWarningNotificationsEnabled(isEnabled):
+            try self.setWarningNotificationsEnabled(isEnabled)
         case let .setActive(accountID):
             try self.setActive(accountID)
         case let .reauthenticate(accountID):
@@ -188,10 +213,31 @@ public final class AccountsFeature: ObservableObject {
             }
         }
 
-        try self.refresh(liveIdentity: self.state.liveIdentity)
+        try self.refresh(liveIdentity: self.state.liveIdentity, shouldNotifyWarning: true)
         self.state.message = staleOrErrorCount == 0
             ? CodeRelayLocalizer.format("accounts.message.usageRefreshedCount", language: self.state.selectedLanguage, freshCount)
             : CodeRelayLocalizer.text("accounts.message.usageRefreshMixed", language: self.state.selectedLanguage)
+    }
+
+    private func refreshActiveMonitoring() async throws {
+        guard let account = try self.activeAccountForRefresh() else {
+            try self.refresh()
+            return
+        }
+
+        let snapshotsByAccountID = try self.usageSnapshotsByAccountID()
+        let result = await self.services.codexUsageRefreshService.refresh(
+            account: account,
+            cachedSnapshot: snapshotsByAccountID[account.id])
+        let resolvedSnapshot = Self.snapshot(
+            from: result,
+            existingSnapshot: snapshotsByAccountID[account.id])
+
+        if let resolvedSnapshot {
+            try self.services.managedAccountUsageStore.upsert(resolvedSnapshot)
+        }
+
+        try self.refresh(liveIdentity: self.state.liveIdentity, shouldNotifyWarning: true)
     }
 
     private func setActive(_ accountID: UUID) throws {
@@ -205,6 +251,36 @@ public final class AccountsFeature: ObservableObject {
         self.persistPreferredAppLanguage(language)
         self.state.selectedLanguage = language
         self.state.message = nil
+    }
+
+    private func setWarningThreshold(_ thresholdPercent: Double) throws {
+        var preferences = self.state.warningPreferences
+        preferences.thresholdPercent = thresholdPercent
+        self.services.warningPreferencesStore.savePreferences(preferences)
+        self.state.warningPreferences = preferences
+        self.state.message = nil
+        try self.refresh()
+    }
+
+    private func setWarningRefreshCadence(_ refreshCadence: WarningRefreshCadence) throws {
+        var preferences = self.state.warningPreferences
+        preferences.refreshCadence = refreshCadence
+        self.services.warningPreferencesStore.savePreferences(preferences)
+        self.state.warningPreferences = preferences
+        self.state.message = nil
+        try self.refresh()
+    }
+
+    private func setWarningNotificationsEnabled(_ isEnabled: Bool) throws {
+        var preferences = self.state.warningPreferences
+        preferences.notificationsEnabled = isEnabled
+        self.services.warningPreferencesStore.savePreferences(preferences)
+        self.state.warningPreferences = preferences
+        if isEnabled {
+            self.services.warningNotifier.requestAuthorizationOnStartup()
+        }
+        self.state.message = nil
+        try self.refresh()
     }
 
     private func reauthenticate(_ accountID: UUID) async throws {
@@ -255,6 +331,13 @@ public final class AccountsFeature: ObservableObject {
         return account
     }
 
+    private func activeAccountForRefresh() throws -> ManagedAccount? {
+        guard let activeManagedAccountID = self.state.activeManagedAccountID ?? self.persistedActiveManagedAccountID() else {
+            return nil
+        }
+        return try self.account(id: activeManagedAccountID)
+    }
+
     private func usageSnapshotsByAccountID() throws -> [UUID: ManagedAccountUsageSnapshot] {
         try self.services.managedAccountUsageStore.listSnapshots()
             .reduce(into: [:]) { partialResult, snapshot in
@@ -286,6 +369,35 @@ public final class AccountsFeature: ObservableObject {
 
     private func persistPreferredAppLanguage(_ language: AppLanguage) {
         self.services.userDefaults.set(language.rawValue, forKey: self.services.preferredAppLanguageKey)
+    }
+
+    private func applyWarningEvaluation(shouldNotify: Bool) {
+        let activeRow = self.state.rows.first(where: { $0.isActive }) ?? self.state.rows.first
+        let alternateRows = self.state.rows.filter { !$0.isActive }
+        let notificationState = self.services.warningPreferencesStore.loadNotificationState()
+        let result = self.services.warningEvaluator.evaluate(
+            activeRow: activeRow,
+            alternateRows: alternateRows,
+            preferences: self.state.warningPreferences,
+            notificationState: notificationState)
+
+        self.state.activeWarning = result.warning
+        if result.notificationState != notificationState {
+            self.services.warningPreferencesStore.saveNotificationState(result.notificationState)
+        }
+
+        guard shouldNotify,
+              result.shouldNotify,
+              let warning = result.warning,
+              warning.severity == .thresholdBreached
+        else {
+            return
+        }
+
+        self.services.warningNotifier.postLowUsageWarning(
+            idPrefix: "\(warning.activeAccountID.uuidString)-\(warning.cause.rawValue)",
+            title: WarningCopy.notificationTitle(for: warning, language: self.state.selectedLanguage),
+            body: WarningCopy.notificationBody(for: warning, language: self.state.selectedLanguage))
     }
 
     private func describe(_ error: Error) -> String {

@@ -2,11 +2,11 @@
 
 [简体中文](README.zh-CN.md)
 
-CodeRelay is a macOS companion app for people who manage more than one Codex account. It keeps each account in its own isolated `CODEX_HOME`, lets you re-authenticate accounts without mixing credentials, and shows which accounts look ready based on the latest usage snapshot.
+CodeRelay is a macOS companion app for people who manage more than one Codex account. It keeps each account in its own isolated `CODEX_HOME`, lets you re-authenticate accounts without mixing credentials, shows which accounts look ready based on the latest usage snapshot, and warns when the active account is getting close to exhaustion.
 
 ## Status
 
-The current codebase is usable for managed-account enrollment and usage visibility, but it is not a full account switcher yet.
+The current codebase is usable for managed-account enrollment, usage visibility, and threshold warnings, but it is not a full account switcher yet.
 
 Implemented now:
 
@@ -16,13 +16,17 @@ Implemented now:
 - read managed-account identity from `auth.json`
 - detect whether the managed account is file-backed, keyring-backed, or unverified
 - refresh usage snapshots for all managed accounts and surface readiness information in the app UI
+- refresh the currently active managed account in the background on a configurable cadence
+- configure one global warning threshold plus a notifications toggle
+- warn once per depletion cycle when the active account falls below threshold in either tracked window
+- surface stale, error, and unknown monitoring risk states in both the management window and menu bar
 - use a menu bar icon as the primary post-setup entry point, while keeping first-run enrollment in a dedicated setup window
+- localize the app shell in English and Simplified Chinese
 - persist account metadata and usage snapshots under `~/Library/Application Support/CodeRelay`
 
 Not implemented yet:
 
 - swapping the live `~/.codex/auth.json` and `~/.codex/config.toml`
-- automatic warnings and background monitoring
 - reopening Codex sessions or restoring CLI/App workflows after a switch
 
 ## Requirements
@@ -73,7 +77,9 @@ Packaging is unsigned or ad-hoc signed by default. Developer ID signing and nota
 3. It reads identity details from the managed `auth.json` and stores account metadata in a local JSON registry.
 4. Usage refresh reads the managed account token and calls the Codex usage endpoint, then stores the latest snapshot locally.
 5. The UI uses those snapshots to show the selected active account's usage and other accounts' readiness.
-6. After first setup, CodeRelay is primarily opened from the menu bar instead of living as a permanent main window.
+6. A runtime-owned scheduler can refresh the active managed account in the background and evaluate warning state after each refresh.
+7. Warning state is deduplicated per depletion cycle, so the app does not spam repeated notifications while the active account remains below threshold.
+8. After first setup, CodeRelay is primarily opened from the menu bar instead of living as a permanent main window.
 
 The current `Set Active` action only changes CodeRelay's local selection. It does not mutate the live `~/.codex` files yet.
 
@@ -101,4 +107,5 @@ The JSON stores are written atomically and locked down to `0600` permissions on 
 - macOS only
 - depends on the installed `codex` CLI
 - no live account switch into `~/.codex` yet
+- background refresh only covers the active managed account in this phase
 - no automatic session resume yet

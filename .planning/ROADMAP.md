@@ -64,8 +64,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] `02.1-01-PLAN.md` — Add a reproducible app-icon pipeline and SwiftPM-compatible localization resource foundation.
-- [ ] `02.1-02-PLAN.md` — Localize the current app surface and lock it down with bilingual verification.
+- [x] `02.1-01-PLAN.md` — Add a reproducible app-icon pipeline and SwiftPM-compatible localization resource foundation.
+- [x] `02.1-02-PLAN.md` — Localize the current app surface and lock it down with bilingual verification.
 
 ### Phase 3: Threshold Warnings
 **Goal**: Users get early, actionable warnings when an active account approaches exhaustion without losing control of when to switch.
@@ -76,7 +76,9 @@ Plans:
   2. User receives a local warning when the active account crosses that threshold.
   3. Warning messaging explains whether the risk comes from the 5-hour window, weekly window, both, or stale data.
   4. Warning messaging suggests alternate managed accounts but does not switch accounts automatically.
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [x] `.omx/plans/code-relay-phase-3-threshold-warnings-plan.md` — Add typed warning evaluation, persisted preferences, active-only background refresh, macOS notifications, and warning UI surfaces.
 
 ### Phase 4: Safe Account Switch Transactions
 **Goal**: Users can deliberately move to another managed account through a journaled, rollback-safe switch that leaves the environment in a verified state.
@@ -117,8 +119,8 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Managed Account Foundation | 3/3 | Manual UAT pending | - |
 | 2. Usage Monitoring & Readiness | 3/3 | Complete | - |
-| 2.1. App Icon & Multilingual Support | 0/2 | Planned | - |
-| 3. Threshold Warnings | 0/TBD | Not started | - |
+| 2.1. App Icon & Multilingual Support | 2/2 | Complete | 2026-04-02 |
+| 3. Threshold Warnings | 1/1 | Complete | 2026-04-02 |
 | 4. Safe Account Switch Transactions | 0/TBD | Not started | - |
 | 5. CLI Relaunch & Continuity UX | 0/TBD | Not started | - |
 | 6. Codex App Lifecycle Validation | 0/TBD | Not started | - |

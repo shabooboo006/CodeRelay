@@ -10,6 +10,9 @@
 
 "manage.window.title" = "管理账号";
 "manage.subtitle" = "查看账号、刷新用量，并调整 CodeRelay 当前使用的托管账号。";
+"manage.section.current" = "当前账号";
+"manage.section.warnings" = "用量预警";
+"manage.section.accounts" = "托管账号";
 
 "menu.header.noAccounts" = "没有托管账号";
 "menu.detail.setupRequired" = "先打开设置并添加第一个托管 Codex 账号。";
@@ -18,10 +21,14 @@
 "menu.detail.liveOnly" = "与当前 Codex 登录一致。";
 "menu.detail.fiveHourRemaining" = "5 小时剩余：%@";
 "menu.detail.weeklyRemaining" = "每周剩余：%@";
+"menu.detail.warning" = "预警：%@";
 "menu.detail.status" = "状态：%@";
 "menu.detail.lastRefreshed" = "上次刷新：%@";
+"menu.metric.session" = "5 小时";
+"menu.metric.weekly" = "每周";
+"menu.meta.status" = "状态";
+"menu.meta.updated" = "已刷新";
 "menu.action.openSetup" = "打开设置…";
-"menu.action.switchActive" = "切换当前账号";
 "menu.action.manageAccounts" = "管理账号…";
 "menu.action.quit" = "退出 CodeRelay";
 
@@ -38,6 +45,10 @@
 
 "accounts.empty.title" = "还没有托管账号。";
 "accounts.empty.subtitle" = "使用“添加账号”在 CodeRelay 中接入新的 Codex 登录。";
+"accounts.other.empty" = "还没有其他托管账号。";
+
+"accounts.metric.fiveHour" = "5 小时窗口";
+"accounts.metric.weekly" = "每周窗口";
 
 "accounts.lastAuthenticated.unavailable" = "上次认证：未提供";
 "accounts.lastAuthenticated.value" = "上次认证：%@";
@@ -86,6 +97,29 @@
 "accounts.message.reauthenticated" = "已重新认证托管账号。";
 "accounts.message.removed" = "已移除托管账号。";
 
+"warnings.title.thresholdBreached" = "低用量预警";
+"warnings.title.monitoringRisk" = "监控需要关注";
+"warnings.summary.fiveHour" = "5 小时剩余已低于或等于 %d%%。";
+"warnings.summary.weekly" = "每周剩余已低于或等于 %d%%。";
+"warnings.summary.both" = "5 小时和每周剩余都已低于或等于 %d%%。";
+"warnings.summary.stale" = "当前账号的用量数据已过期，请刷新后确认剩余额度。";
+"warnings.summary.error" = "当前账号的用量刷新失败，请刷新后确认剩余额度。";
+"warnings.summary.unknown" = "当前账号还没有可信的用量快照，请刷新后确认剩余额度。";
+"warnings.suggestions.none" = "当前没有足够安全可推荐的备选托管账号。";
+"warnings.suggestions.some" = "建议备选账号：%@";
+"warnings.settings.title" = "用量预警";
+"warnings.settings.threshold" = "预警阈值";
+"warnings.settings.threshold.value" = "剩余 %d%%";
+"warnings.settings.refreshCadence" = "后台刷新";
+"warnings.settings.notificationsEnabled" = "启用 macOS 通知";
+"warnings.settings.refreshHelp" = "后台刷新只检查当前激活的托管账号。";
+"warnings.settings.notificationsHelp" = "每个耗尽周期只发送一次本地通知，恢复后才允许下一次提醒。";
+"warnings.refreshCadence.manual" = "仅手动";
+"warnings.refreshCadence.oneMinute" = "每 1 分钟";
+"warnings.refreshCadence.fiveMinutes" = "每 5 分钟";
+"warnings.refreshCadence.fifteenMinutes" = "每 15 分钟";
+"warnings.refreshCadence.thirtyMinutes" = "每 30 分钟";
+"warnings.notification.title" = "%@ 快接近上限了";
 "accounts.error.missingAccount" = "找不到所选的托管账号。";
 "accounts.error.missingIdentity" = "登录完成后未返回托管账号身份信息。";
 "accounts.error.unsafeRemovalTarget" = "待移除的托管目录不在 CodeRelay 的管理根目录下。";

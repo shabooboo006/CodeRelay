@@ -14,15 +14,14 @@ Keep a macOS developer continuously productive in Codex by making account exhaus
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] User can add, inspect, and manage multiple Codex accounts inside one macOS app.
+- [x] User can see current Codex 5-hour sliding-window usage, weekly usage, reset timing, and alternate-account readiness for the active account.
+- [x] User sees a recognizable CodeRelay app icon in the packaged macOS app and release artifacts.
+- [x] User can use the current app surface in English and Simplified Chinese without mixed-language primary flows.
+- [x] User can define a low-usage warning threshold, receive one local warning per depletion cycle, and see alternate suggestions without auto-switching.
 
 ### Active
 
-- [ ] User can add, inspect, and manage multiple Codex accounts inside one macOS app.
-- [ ] User can see current Codex 5-hour sliding-window usage, weekly usage, and reset timing for the active account.
-- [ ] User sees a recognizable CodeRelay app icon in the packaged macOS app and release artifacts.
-- [ ] User can use the current app surface in English and Simplified Chinese without mixed-language primary flows.
-- [ ] User can define a low-usage warning threshold and receive a warning before an account is effectively exhausted.
 - [ ] User can confirm a one-click switch into another managed Codex account with enough remaining usage.
 - [ ] User can switch accounts with automatic shutdown and relaunch of the target Codex CLI workflow, then attempt best-effort conversation resume when possible.
 
@@ -36,7 +35,7 @@ Keep a macOS developer continuously productive in Codex by making account exhaus
 
 The workspace is a multi-repo reference environment:
 
-- `CodeRelay/` is the real implementation repository and is currently empty.
+- `CodeRelay/` is the real implementation repository and now contains Phases 1, 2, 2.1, and 3 in working form.
 - `CodexBar/` is a reference macOS app with strong menu bar UX and existing Codex usage-monitoring logic.
 - `cc-switch/` is a reference desktop app whose Codex configuration-file switching flow has already been verified by the user with three Codex accounts.
 
@@ -76,8 +75,9 @@ Product expectations gathered so far:
 | Ship warning-first account switching instead of silent auto-switching | The user wants control over when to leave the current account after being warned | — Pending |
 | Collapse the provider model to Codex-only for v1 | Narrow scope improves clarity, reduces technical drag, and aligns with the actual job to be done | — Pending |
 | Deliver Codex CLI continuity before Codex App automation | CLI capabilities are inspectable and available today; Codex App automation should be validated separately instead of blocking v1 | — Pending |
-| Insert Phase 02.1 for app icon and multilingual support before Threshold Warnings | The user explicitly reprioritized release identity and bilingual usability ahead of new warning logic | Active |
-| Keep `CodeRelay` as the unlocalized product name while localizing user-facing copy through shared resources | This preserves brand consistency and avoids per-view ad hoc translation logic | Active |
+| Insert Phase 02.1 for app icon and multilingual support before Threshold Warnings | The user explicitly reprioritized release identity and bilingual usability ahead of new warning logic | Complete |
+| Keep `CodeRelay` as the unlocalized product name while localizing user-facing copy through shared resources | This preserves brand consistency and avoids per-view ad hoc translation logic | Complete |
+| Phase 3 should warn on either window, refresh only the active managed account in the background, and notify once until recovery | This keeps warning behavior useful without turning Phase 3 into auto-switching or broad polling | Complete |
 
 ## Evolution
 
@@ -97,4 +97,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-02 after inserting Phase 02.1*
+*Last updated: 2026-04-02 after landing Phase 3 threshold warnings*

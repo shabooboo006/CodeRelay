@@ -7,12 +7,12 @@
 
 ### Accounts
 
-- [ ] **ACCT-01**: User can add a managed Codex account through a scoped login flow that stores it separately from other managed accounts.
-- [ ] **ACCT-02**: User can view all managed Codex accounts with account email, last authentication time, and active/live status.
-- [ ] **ACCT-03**: User can choose which managed Codex account CodeRelay should treat as the active account.
-- [ ] **ACCT-04**: User can re-authenticate an existing managed Codex account without creating a duplicate account entry.
-- [ ] **ACCT-05**: User can remove a managed Codex account that is no longer needed.
-- [ ] **ACCT-06**: User can see when a managed Codex account cannot support reliable one-click switching because its credential storage mode is unsupported or unverified.
+- [x] **ACCT-01**: User can add a managed Codex account through a scoped login flow that stores it separately from other managed accounts.
+- [x] **ACCT-02**: User can view all managed Codex accounts with account email, last authentication time, and active/live status.
+- [x] **ACCT-03**: User can choose which managed Codex account CodeRelay should treat as the active account.
+- [x] **ACCT-04**: User can re-authenticate an existing managed Codex account without creating a duplicate account entry.
+- [x] **ACCT-05**: User can remove a managed Codex account that is no longer needed.
+- [x] **ACCT-06**: User can see when a managed Codex account cannot support reliable one-click switching because its credential storage mode is unsupported or unverified.
 
 ### Monitoring
 
@@ -24,10 +24,10 @@
 
 ### Warnings
 
-- [ ] **WARN-01**: User can configure a low-usage warning threshold as a percentage value.
-- [ ] **WARN-02**: User receives a local warning when the active account crosses the configured threshold.
-- [ ] **WARN-03**: Warning messaging identifies whether risk comes from the 5-hour window, weekly window, both, or stale data.
-- [ ] **WARN-04**: Warning messaging suggests alternate managed accounts but does not switch automatically.
+- [x] **WARN-01**: User can configure a low-usage warning threshold as a percentage value.
+- [x] **WARN-02**: User receives a local warning when the active account crosses the configured threshold.
+- [x] **WARN-03**: Warning messaging identifies whether risk comes from the 5-hour window, weekly window, both, or stale data.
+- [x] **WARN-04**: Warning messaging suggests alternate managed accounts but does not switch automatically.
 
 ### Switching
 
@@ -50,9 +50,9 @@
 
 ### Branding & Localization
 
-- [ ] **BRAND-01**: User sees a custom CodeRelay app icon in the packaged macOS app and release artifacts.
-- [ ] **I18N-01**: User can use the current CodeRelay app surface in English or Simplified Chinese based on system locale without mixed-language primary flows.
-- [ ] **I18N-02**: Product name stays `CodeRelay`, while static labels, actions, empty states, and status messaging come from shared localized app resources instead of duplicated hard-coded strings.
+- [x] **BRAND-01**: User sees a custom CodeRelay app icon in the packaged macOS app and release artifacts.
+- [x] **I18N-01**: User can use the current CodeRelay app surface in English or Simplified Chinese based on system locale without mixed-language primary flows.
+- [x] **I18N-02**: Product name stays `CodeRelay`, while static labels, actions, empty states, and status messaging come from shared localized app resources instead of duplicated hard-coded strings.
 
 ## v2 Requirements
 
@@ -85,21 +85,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ACCT-01 | Phase 1 | Pending |
-| ACCT-02 | Phase 1 | Pending |
-| ACCT-03 | Phase 1 | Pending |
-| ACCT-04 | Phase 1 | Pending |
-| ACCT-05 | Phase 1 | Pending |
-| ACCT-06 | Phase 1 | Pending |
+| ACCT-01 | Phase 1 | Complete |
+| ACCT-02 | Phase 1 | Complete |
+| ACCT-03 | Phase 1 | Complete |
+| ACCT-04 | Phase 1 | Complete |
+| ACCT-05 | Phase 1 | Complete |
+| ACCT-06 | Phase 1 | Complete |
 | MON-01 | Phase 2 | Complete |
 | MON-02 | Phase 2 | Complete |
 | MON-03 | Phase 2 | Complete |
 | MON-04 | Phase 2 | Complete |
 | MON-05 | Phase 2 | Complete |
-| WARN-01 | Phase 3 | Pending |
-| WARN-02 | Phase 3 | Pending |
-| WARN-03 | Phase 3 | Pending |
-| WARN-04 | Phase 3 | Pending |
+| WARN-01 | Phase 3 | Complete |
+| WARN-02 | Phase 3 | Complete |
+| WARN-03 | Phase 3 | Complete |
+| WARN-04 | Phase 3 | Complete |
 | SWCH-01 | Phase 4 | Pending |
 | SWCH-02 | Phase 4 | Pending |
 | SWCH-03 | Phase 4 | Pending |
@@ -110,9 +110,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-03 | Phase 5 | Pending |
 | UI-01 | Phase 5 | Pending |
 | UI-02 | Phase 5 | Pending |
-| BRAND-01 | Phase 2.1 | Pending |
-| I18N-01 | Phase 2.1 | Pending |
-| I18N-02 | Phase 2.1 | Pending |
+| BRAND-01 | Phase 2.1 | Complete |
+| I18N-01 | Phase 2.1 | Complete |
+| I18N-02 | Phase 2.1 | Complete |
 
 **Coverage:**
 - v1 requirements: 28 total
@@ -121,4 +121,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-02 after inserting Phase 02.1*
+*Last updated: 2026-04-02 after landing Phase 3 threshold warnings*

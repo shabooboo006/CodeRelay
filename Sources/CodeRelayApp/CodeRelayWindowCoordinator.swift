@@ -41,7 +41,7 @@ final class CodeRelayWindowCoordinator {
     private func makeSetupWindowController() -> NSWindowController {
         self.makeWindowController(
             title: self.localized("setup.window.title"),
-            size: NSSize(width: 540, height: 430),
+            size: NSSize(width: 620, height: 500),
             styleMask: [.titled, .closable, .miniaturizable],
             view: AccountsView(feature: self.feature, mode: .setup))
     }
@@ -49,7 +49,7 @@ final class CodeRelayWindowCoordinator {
     private func makeManagementWindowController() -> NSWindowController {
         self.makeWindowController(
             title: self.localized("manage.window.title"),
-            size: NSSize(width: 760, height: 520),
+            size: NSSize(width: 860, height: 690),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             view: AccountsView(feature: self.feature, mode: .management))
     }

@@ -10,6 +10,9 @@
 
 "manage.window.title" = "Manage Accounts";
 "manage.subtitle" = "Review accounts, refresh usage, and adjust which managed account CodeRelay treats as active.";
+"manage.section.current" = "Current Account";
+"manage.section.warnings" = "Usage Warnings";
+"manage.section.accounts" = "Managed Accounts";
 
 "menu.header.noAccounts" = "No managed accounts";
 "menu.detail.setupRequired" = "Open setup to add the first managed Codex account.";
@@ -18,10 +21,14 @@
 "menu.detail.liveOnly" = "Matches the live Codex login.";
 "menu.detail.fiveHourRemaining" = "5-hour remaining: %@";
 "menu.detail.weeklyRemaining" = "Weekly remaining: %@";
+"menu.detail.warning" = "Warning: %@";
 "menu.detail.status" = "Status: %@";
 "menu.detail.lastRefreshed" = "Last refreshed: %@";
+"menu.metric.session" = "Session";
+"menu.metric.weekly" = "Weekly";
+"menu.meta.status" = "Status";
+"menu.meta.updated" = "Updated";
 "menu.action.openSetup" = "Open Setup…";
-"menu.action.switchActive" = "Switch Active Account";
 "menu.action.manageAccounts" = "Manage Accounts…";
 "menu.action.quit" = "Quit CodeRelay";
 
@@ -38,6 +45,10 @@
 
 "accounts.empty.title" = "No managed accounts yet.";
 "accounts.empty.subtitle" = "Use Add Account to enroll a CodeRelay-scoped Codex login.";
+"accounts.other.empty" = "No other managed accounts yet.";
+
+"accounts.metric.fiveHour" = "5-hour window";
+"accounts.metric.weekly" = "Weekly window";
 
 "accounts.lastAuthenticated.unavailable" = "Last authenticated: unavailable";
 "accounts.lastAuthenticated.value" = "Last authenticated: %@";
@@ -86,6 +97,29 @@
 "accounts.message.reauthenticated" = "Managed account re-authenticated.";
 "accounts.message.removed" = "Managed account removed.";
 
+"warnings.title.thresholdBreached" = "Low-usage warning";
+"warnings.title.monitoringRisk" = "Monitoring attention";
+"warnings.summary.fiveHour" = "5-hour remaining is at or below %d%%.";
+"warnings.summary.weekly" = "Weekly remaining is at or below %d%%.";
+"warnings.summary.both" = "5-hour and weekly remaining are both at or below %d%%.";
+"warnings.summary.stale" = "The active account's usage data is stale. Refresh to confirm current headroom.";
+"warnings.summary.error" = "The active account's usage refresh failed. Refresh to confirm current headroom.";
+"warnings.summary.unknown" = "The active account does not have a trusted usage snapshot yet. Refresh to confirm current headroom.";
+"warnings.suggestions.none" = "No alternate managed accounts are currently safe to recommend.";
+"warnings.suggestions.some" = "Suggested alternates: %@";
+"warnings.settings.title" = "Usage Warnings";
+"warnings.settings.threshold" = "Warning threshold";
+"warnings.settings.threshold.value" = "%d%% remaining";
+"warnings.settings.refreshCadence" = "Background refresh";
+"warnings.settings.notificationsEnabled" = "Enable macOS notifications";
+"warnings.settings.refreshHelp" = "Background refresh checks only the active managed account.";
+"warnings.settings.notificationsHelp" = "Posts one local notification per depletion cycle, then waits for recovery before alerting again.";
+"warnings.refreshCadence.manual" = "Manual only";
+"warnings.refreshCadence.oneMinute" = "Every minute";
+"warnings.refreshCadence.fiveMinutes" = "Every 5 minutes";
+"warnings.refreshCadence.fifteenMinutes" = "Every 15 minutes";
+"warnings.refreshCadence.thirtyMinutes" = "Every 30 minutes";
+"warnings.notification.title" = "%@ is running low";
 "accounts.error.missingAccount" = "The selected managed account could not be found.";
 "accounts.error.missingIdentity" = "The managed account did not return an identity after login.";
 "accounts.error.unsafeRemovalTarget" = "The managed home path is outside CodeRelay's managed root.";

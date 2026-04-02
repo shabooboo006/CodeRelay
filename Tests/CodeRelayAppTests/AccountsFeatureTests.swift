@@ -305,6 +305,251 @@ import Testing
         #expect(alternateRow.usageStatus == .unknown)
     }
 
+    @MainActor
+    @Test
+    func Phase3_accountsFeature_refreshesOnlyActiveAccountInBackground() async throws {
+        let defaults = try Self.makeDefaults("phase3-active-only-refresh")
+        let active = Self.makeAccount(email: "active@example.com")
+        let alternate = Self.makeAccount(email: "alternate@example.com")
+        defaults.set(active.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let refreshService = StubCodexUsageRefreshService(resultsByAccountID: [
+            active.id: .init(
+                accountID: active.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: active.id,
+                    fiveHourUsedPercent: 40,
+                    weeklyUsedPercent: 20,
+                    status: .fresh,
+                    source: .managedHomeOAuth),
+                status: .fresh,
+                source: .managedHomeOAuth,
+                message: nil)
+        ])
+        let usageStore = StubManagedAccountUsageStore()
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [active, alternate]),
+            usageStore: usageStore,
+            refreshService: refreshService))
+
+        feature.loadInitialState()
+        try await feature.perform(.refreshActiveMonitoring)
+
+        #expect(refreshService.requestedEmails == ["active@example.com"])
+        #expect(try usageStore.listSnapshots().map(\.accountID) == [active.id])
+    }
+
+    @MainActor
+    @Test
+    func Phase3_accountsFeature_skipsBackgroundRefreshWithoutActiveAccount() async throws {
+        let defaults = try Self.makeDefaults("phase3-no-active-background")
+        let active = Self.makeAccount(email: "active@example.com")
+        let alternate = Self.makeAccount(email: "alternate@example.com")
+        let refreshService = StubCodexUsageRefreshService(resultsByAccountID: [
+            active.id: .init(
+                accountID: active.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: active.id,
+                    fiveHourUsedPercent: 40,
+                    weeklyUsedPercent: 20,
+                    status: .fresh,
+                    source: .managedHomeOAuth),
+                status: .fresh,
+                source: .managedHomeOAuth,
+                message: nil)
+        ])
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [active, alternate]),
+            refreshService: refreshService))
+
+        feature.loadInitialState()
+        try await feature.perform(.refreshActiveMonitoring)
+
+        #expect(refreshService.requestedEmails.isEmpty)
+    }
+
+    @MainActor
+    @Test
+    func Phase3_accountsFeature_notifiesOncePerDepletionCycle() async throws {
+        let defaults = try Self.makeDefaults("phase3-notify-once")
+        let active = Self.makeAccount(email: "active@example.com")
+        defaults.set(active.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let warningStore = StubWarningPreferencesStore(preferences: WarningPreferences(
+            thresholdPercent: 20,
+            refreshCadence: .fiveMinutes,
+            notificationsEnabled: true))
+        let notifier = StubWarningNotifier()
+        let refreshService = StubCodexUsageRefreshService(resultsByAccountID: [
+            active.id: .init(
+                accountID: active.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: active.id,
+                    fiveHourUsedPercent: 90,
+                    weeklyUsedPercent: 25,
+                    status: .fresh,
+                    source: .managedHomeOAuth),
+                status: .fresh,
+                source: .managedHomeOAuth,
+                message: nil)
+        ])
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [active]),
+            refreshService: refreshService,
+            warningPreferencesStore: warningStore,
+            warningNotifier: notifier))
+
+        feature.loadInitialState()
+        try await feature.perform(.refreshActiveMonitoring)
+        try await feature.perform(.refreshActiveMonitoring)
+
+        #expect(feature.state.activeWarning?.cause == .fiveHour)
+        #expect(notifier.postedWarnings.count == 1)
+        #expect(warningStore.notificationState.suppressedAccountIDs == [active.id])
+    }
+
+    @MainActor
+    @Test
+    func Phase3_accountsFeature_notifiesAgainAfterRecoveryAndRebreach() async throws {
+        let defaults = try Self.makeDefaults("phase3-rebreach")
+        let active = Self.makeAccount(email: "active@example.com")
+        defaults.set(active.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let warningStore = StubWarningPreferencesStore(preferences: WarningPreferences(
+            thresholdPercent: 20,
+            refreshCadence: .fiveMinutes,
+            notificationsEnabled: true))
+        let notifier = StubWarningNotifier()
+        let refreshService = StubCodexUsageRefreshService(
+            resultSequencesByAccountID: [
+                active.id: [
+                    .init(
+                        accountID: active.id,
+                        snapshot: Self.makeSnapshot(
+                            accountID: active.id,
+                            fiveHourUsedPercent: 90,
+                            weeklyUsedPercent: 25,
+                            status: .fresh,
+                            source: .managedHomeOAuth),
+                        status: .fresh,
+                        source: .managedHomeOAuth,
+                        message: nil),
+                    .init(
+                        accountID: active.id,
+                        snapshot: Self.makeSnapshot(
+                            accountID: active.id,
+                            fiveHourUsedPercent: 40,
+                            weeklyUsedPercent: 25,
+                            status: .fresh,
+                            source: .managedHomeOAuth),
+                        status: .fresh,
+                        source: .managedHomeOAuth,
+                        message: nil),
+                    .init(
+                        accountID: active.id,
+                        snapshot: Self.makeSnapshot(
+                            accountID: active.id,
+                            fiveHourUsedPercent: 88,
+                            weeklyUsedPercent: 25,
+                            status: .fresh,
+                            source: .managedHomeOAuth),
+                        status: .fresh,
+                        source: .managedHomeOAuth,
+                        message: nil),
+                ]
+            ])
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [active]),
+            refreshService: refreshService,
+            warningPreferencesStore: warningStore,
+            warningNotifier: notifier))
+
+        feature.loadInitialState()
+        try await feature.perform(.refreshActiveMonitoring)
+        try await feature.perform(.refreshActiveMonitoring)
+        try await feature.perform(.refreshActiveMonitoring)
+
+        #expect(notifier.postedWarnings.count == 2)
+        #expect(feature.state.activeWarning?.cause == .fiveHour)
+    }
+
+    @MainActor
+    @Test
+    func Phase3_accountsFeature_marksMonitoringRiskWithoutNotifying() async throws {
+        let defaults = try Self.makeDefaults("phase3-monitoring-risk")
+        let active = Self.makeAccount(email: "active@example.com")
+        defaults.set(active.id.uuidString, forKey: AppContainer.activeManagedAccountIDKey)
+
+        let warningStore = StubWarningPreferencesStore(preferences: .defaultValue)
+        let notifier = StubWarningNotifier()
+        let refreshService = StubCodexUsageRefreshService(resultsByAccountID: [
+            active.id: .init(
+                accountID: active.id,
+                snapshot: Self.makeSnapshot(
+                    accountID: active.id,
+                    fiveHourUsedPercent: 90,
+                    weeklyUsedPercent: 25,
+                    status: .stale,
+                    source: .cache,
+                    lastErrorDescription: "timed out"),
+                status: .stale,
+                source: .cache,
+                message: "timed out")
+        ])
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [active]),
+            refreshService: refreshService,
+            warningPreferencesStore: warningStore,
+            warningNotifier: notifier))
+
+        feature.loadInitialState()
+        try await feature.perform(.refreshActiveMonitoring)
+
+        #expect(feature.state.activeWarning?.severity == .monitoringRisk)
+        #expect(feature.state.activeWarning?.cause == .stale)
+        #expect(notifier.postedWarnings.isEmpty)
+    }
+
+    @MainActor
+    @Test
+    func Phase3_accountsFeature_persistsWarningPreferencesAndRequestsAuthorizationWhenEnabled() async throws {
+        let defaults = try Self.makeDefaults("phase3-preferences")
+        let warningStore = StubWarningPreferencesStore(preferences: WarningPreferences(
+            thresholdPercent: 15,
+            refreshCadence: .manual,
+            notificationsEnabled: false))
+        let notifier = StubWarningNotifier()
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(),
+            warningPreferencesStore: warningStore,
+            warningNotifier: notifier))
+
+        #expect(feature.state.warningPreferences.thresholdPercent == 15)
+        #expect(feature.state.warningPreferences.refreshCadence == .manual)
+        #expect(feature.state.warningPreferences.notificationsEnabled == false)
+
+        try await feature.perform(.setWarningThreshold(35))
+        try await feature.perform(.setWarningRefreshCadence(.oneMinute))
+        try await feature.perform(.setWarningNotificationsEnabled(true))
+
+        #expect(feature.state.warningPreferences == WarningPreferences(
+            thresholdPercent: 35,
+            refreshCadence: .oneMinute,
+            notificationsEnabled: true))
+        #expect(warningStore.savedPreferences.suffix(3) == [
+            WarningPreferences(thresholdPercent: 35, refreshCadence: .manual, notificationsEnabled: false),
+            WarningPreferences(thresholdPercent: 35, refreshCadence: .oneMinute, notificationsEnabled: false),
+            WarningPreferences(thresholdPercent: 35, refreshCadence: .oneMinute, notificationsEnabled: true),
+        ])
+        #expect(notifier.authorizationRequests == 1)
+    }
+
     @Test
     func Phase2_1_localizerProvidesChineseAndEnglishAccountCopy() {
         #expect(CodeRelayLocalizer.text("accounts.title", language: .simplifiedChinese) == "托管 Codex 账号")
@@ -335,14 +580,14 @@ import Testing
             language: .english))
     }
 
-    private static func makeDefaults(_ suffix: String) throws -> UserDefaults {
+    static func makeDefaults(_ suffix: String) throws -> UserDefaults {
         let suite = "AccountsFeatureTests.\(suffix)"
         let defaults = try #require(UserDefaults(suiteName: suite))
         defaults.removePersistentDomain(forName: suite)
         return defaults
     }
 
-    private static func makeAccount(email: String) -> ManagedAccount {
+    static func makeAccount(email: String) -> ManagedAccount {
         ManagedAccount(
             id: UUID(),
             email: email,
@@ -355,7 +600,8 @@ import Testing
             lastValidatedIdentity: ManagedAccountIdentity(email: email))
     }
 
-    private static func makeServices(
+    @MainActor
+    static func makeServices(
         defaults: UserDefaults,
         store: StubManagedAccountStore,
         usageStore: StubManagedAccountUsageStore = StubManagedAccountUsageStore(),
@@ -363,7 +609,10 @@ import Testing
         loginRunner: StubCodexLoginRunner = StubCodexLoginRunner(),
         identityReader: StubCodexIdentityReader = StubCodexIdentityReader(identity: ManagedAccountIdentity(email: "new@example.com")),
         detector: StubCredentialStoreDetector = StubCredentialStoreDetector(),
-        refreshService: StubCodexUsageRefreshService = StubCodexUsageRefreshService())
+        refreshService: StubCodexUsageRefreshService = StubCodexUsageRefreshService(),
+        warningEvaluator: any WarningEvaluating = DefaultWarningEvaluator(),
+        warningPreferencesStore: (any WarningPreferencesStoring)? = nil,
+        warningNotifier: (any WarningNotifying)? = nil)
         -> AppContainer.Services
     {
         AppContainer.Services(
@@ -373,11 +622,14 @@ import Testing
             managedAccountStore: store,
             managedAccountUsageStore: usageStore,
             accountProjection: DefaultAccountProjection(),
+            warningEvaluator: warningEvaluator,
             managedHomeSafety: managedHomeSafety,
             codexLoginRunner: loginRunner,
             codexIdentityReader: identityReader,
             credentialStoreDetector: detector,
-            codexUsageRefreshService: refreshService)
+            codexUsageRefreshService: refreshService,
+            warningPreferencesStore: warningPreferencesStore,
+            warningNotifier: warningNotifier)
     }
 
     private static func makeSnapshot(
@@ -408,12 +660,12 @@ import Testing
     }
 }
 
-private struct UpsertCall {
+struct UpsertCall {
     let account: AuthenticatedManagedAccount
     let existingAccountID: UUID?
 }
 
-private final class StubManagedAccountUsageStore: ManagedAccountUsageStore, @unchecked Sendable {
+final class StubManagedAccountUsageStore: ManagedAccountUsageStore, @unchecked Sendable {
     var snapshots: [ManagedAccountUsageSnapshot]
 
     init(snapshots: [ManagedAccountUsageSnapshot] = []) {
@@ -441,7 +693,7 @@ private final class StubManagedAccountUsageStore: ManagedAccountUsageStore, @unc
     }
 }
 
-private final class StubManagedAccountStore: ManagedAccountStore, @unchecked Sendable {
+final class StubManagedAccountStore: ManagedAccountStore, @unchecked Sendable {
     var accounts: [ManagedAccount]
     var upsertCalls: [UpsertCall] = []
 
@@ -501,11 +753,11 @@ private final class StubManagedAccountStore: ManagedAccountStore, @unchecked Sen
     }
 }
 
-private final class LoginRecorder: @unchecked Sendable {
+final class LoginRecorder: @unchecked Sendable {
     var requests: [CodexLoginRequest] = []
 }
 
-private struct StubCodexLoginRunner: CodexLoginRunner, Sendable {
+struct StubCodexLoginRunner: CodexLoginRunner, Sendable {
     var recorder: LoginRecorder?
 
     init(recorder: LoginRecorder? = nil) {
@@ -522,7 +774,7 @@ private struct StubCodexLoginRunner: CodexLoginRunner, Sendable {
     }
 }
 
-private struct StubCodexIdentityReader: CodexIdentityReader, Sendable {
+struct StubCodexIdentityReader: CodexIdentityReader, Sendable {
     let identity: ManagedAccountIdentity?
 
     func readIdentity(in scope: CodexHomeScope) throws -> ManagedAccountIdentity? {
@@ -531,7 +783,7 @@ private struct StubCodexIdentityReader: CodexIdentityReader, Sendable {
     }
 }
 
-private struct StubCredentialStoreDetector: CredentialStoreDetector, Sendable {
+struct StubCredentialStoreDetector: CredentialStoreDetector, Sendable {
     var mode: CredentialStoreMode = .file
     var supportState: AccountSupportState = .supported
 
@@ -546,12 +798,17 @@ private struct StubCredentialStoreDetector: CredentialStoreDetector, Sendable {
     }
 }
 
-private final class StubCodexUsageRefreshService: CodexUsageRefreshService, @unchecked Sendable {
+final class StubCodexUsageRefreshService: CodexUsageRefreshService, @unchecked Sendable {
     var resultsByAccountID: [UUID: ManagedAccountUsageRefreshResult]
+    var resultSequencesByAccountID: [UUID: [ManagedAccountUsageRefreshResult]]
     var requestedEmails: [String] = []
 
-    init(resultsByAccountID: [UUID: ManagedAccountUsageRefreshResult] = [:]) {
+    init(
+        resultsByAccountID: [UUID: ManagedAccountUsageRefreshResult] = [:],
+        resultSequencesByAccountID: [UUID: [ManagedAccountUsageRefreshResult]] = [:])
+    {
         self.resultsByAccountID = resultsByAccountID
+        self.resultSequencesByAccountID = resultSequencesByAccountID
     }
 
     func refresh(
@@ -561,6 +818,11 @@ private final class StubCodexUsageRefreshService: CodexUsageRefreshService, @unc
     {
         _ = cachedSnapshot
         self.requestedEmails.append(account.email)
+        if var sequence = self.resultSequencesByAccountID[account.id], !sequence.isEmpty {
+            let next = sequence.removeFirst()
+            self.resultSequencesByAccountID[account.id] = sequence
+            return next
+        }
         return self.resultsByAccountID[account.id] ?? ManagedAccountUsageRefreshResult(
             accountID: account.id,
             snapshot: nil,
@@ -570,7 +832,7 @@ private final class StubCodexUsageRefreshService: CodexUsageRefreshService, @unc
     }
 }
 
-private struct StubManagedHomeSafety: ManagedHomeSafety, Sendable {
+struct StubManagedHomeSafety: ManagedHomeSafety, Sendable {
     var shouldThrow: Bool = false
 
     func validateRemovalTarget(_ url: URL) throws {
@@ -578,5 +840,57 @@ private struct StubManagedHomeSafety: ManagedHomeSafety, Sendable {
         if self.shouldThrow {
             throw ManagedHomeSafetyError.outsideManagedRoot
         }
+    }
+}
+
+final class StubWarningPreferencesStore: WarningPreferencesStoring, @unchecked Sendable {
+    var preferences: WarningPreferences
+    var notificationState: WarningNotificationState
+    var savedPreferences: [WarningPreferences] = []
+    var savedNotificationStates: [WarningNotificationState] = []
+
+    init(
+        preferences: WarningPreferences,
+        notificationState: WarningNotificationState = .defaultValue)
+    {
+        self.preferences = preferences
+        self.notificationState = notificationState
+    }
+
+    func loadPreferences() -> WarningPreferences {
+        self.preferences
+    }
+
+    func savePreferences(_ preferences: WarningPreferences) {
+        self.preferences = preferences
+        self.savedPreferences.append(preferences)
+    }
+
+    func loadNotificationState() -> WarningNotificationState {
+        self.notificationState
+    }
+
+    func saveNotificationState(_ state: WarningNotificationState) {
+        self.notificationState = state
+        self.savedNotificationStates.append(state)
+    }
+}
+
+final class StubWarningNotifier: WarningNotifying, @unchecked Sendable {
+    struct PostedWarning: Equatable {
+        let idPrefix: String
+        let title: String
+        let body: String
+    }
+
+    var authorizationRequests = 0
+    var postedWarnings: [PostedWarning] = []
+
+    func requestAuthorizationOnStartup() {
+        self.authorizationRequests += 1
+    }
+
+    func postLowUsageWarning(idPrefix: String, title: String, body: String) {
+        self.postedWarnings.append(PostedWarning(idPrefix: idPrefix, title: title, body: body))
     }
 }
