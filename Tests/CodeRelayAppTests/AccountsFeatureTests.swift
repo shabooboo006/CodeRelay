@@ -41,6 +41,32 @@ import Testing
 
     @MainActor
     @Test
+    func Phase2_1_accountsFeature_defaultsToSimplifiedChinese() throws {
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: try Self.makeDefaults("default-language"),
+            store: StubManagedAccountStore()))
+
+        #expect(feature.state.selectedLanguage == .simplifiedChinese)
+    }
+
+    @MainActor
+    @Test
+    func Phase2_1_accountsFeature_persistsLanguageSelectionAndUsesEnglishCopy() async throws {
+        let defaults = try Self.makeDefaults("language-selection")
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore()))
+
+        try await feature.perform(.setLanguage(.english))
+        try await feature.perform(.refreshMonitoring)
+
+        #expect(defaults.string(forKey: AppContainer.preferredAppLanguageKey) == AppLanguage.english.rawValue)
+        #expect(feature.state.selectedLanguage == .english)
+        #expect(feature.state.message == CodeRelayLocalizer.text("accounts.message.noAccountsToRefresh", language: .english))
+    }
+
+    @MainActor
+    @Test
     func Phase1_accountsFeature_routesReauthenticationWithExistingID() async throws {
         let defaults = try Self.makeDefaults("reauth")
         let account = Self.makeAccount(email: "person@example.com")
@@ -178,7 +204,10 @@ import Testing
         let alternate = try #require(feature.state.rows.first(where: { $0.id == alpha.id }))
         #expect(alternate.alternateReadiness?.status == .fresh)
         #expect(alternate.alternateReadiness?.fiveHourRemainingPercent == 76)
-        #expect(feature.state.message == "Usage refreshed for 3 accounts.")
+        #expect(feature.state.message == CodeRelayLocalizer.format(
+            "accounts.message.usageRefreshedCount",
+            language: .simplifiedChinese,
+            3))
     }
 
     @MainActor
@@ -231,7 +260,9 @@ import Testing
         #expect(activeRow.usageSource == .cache)
         let alternateRow = try #require(feature.state.rows.first(where: { $0.id == alternate.id }))
         #expect(alternateRow.alternateReadiness?.status == .error)
-        #expect(feature.state.message == "Usage refresh completed with stale or error results.")
+        #expect(feature.state.message == CodeRelayLocalizer.text(
+            "accounts.message.usageRefreshMixed",
+            language: .simplifiedChinese))
     }
 
     @MainActor
@@ -275,16 +306,33 @@ import Testing
     }
 
     @Test
-    func Phase2_accountsFeature_accountsViewContainsMonitoringCopyAndRefreshAction() throws {
-        let source = try String(contentsOf: Self.accountsViewSourceURL, encoding: .utf8)
+    func Phase2_1_localizerProvidesChineseAndEnglishAccountCopy() {
+        #expect(CodeRelayLocalizer.text("accounts.title", language: .simplifiedChinese) == "托管 Codex 账号")
+        #expect(CodeRelayLocalizer.text("accounts.title", language: .english) == "Managed Codex Accounts")
+        #expect(CodeRelayLocalizer.languageOptionLabel(.simplifiedChinese, language: .english) == "Simplified Chinese")
+        #expect(CodeRelayLocalizer.languageOptionLabel(.english, language: .simplifiedChinese) == "English")
+    }
 
-        #expect(source.contains("Button(\"Refresh Usage\")"))
-        #expect(source.contains("Text(\"5-hour usage:"))
-        #expect(source.contains("Text(\"Weekly usage:"))
-        #expect(source.contains("Text(\"Last refreshed:"))
-        #expect(source.contains("Text(\"Source:"))
-        #expect(source.contains("Text(\"Status:"))
-        #expect(source.contains("Text(\"Readiness:"))
+    @MainActor
+    @Test
+    func Phase2_1_accountsFeature_localizesErrorsInCurrentLanguage() async throws {
+        let defaults = try Self.makeDefaults("localized-errors")
+        let account = Self.makeAccount(email: "person@example.com")
+        let feature = AccountsFeature(services: Self.makeServices(
+            defaults: defaults,
+            store: StubManagedAccountStore(accounts: [account]),
+            managedHomeSafety: StubManagedHomeSafety(shouldThrow: true)))
+
+        await feature.run(.remove(account.id))
+        #expect(feature.state.message == CodeRelayLocalizer.text(
+            "accounts.error.unsafeRemovalTarget",
+            language: .simplifiedChinese))
+
+        try await feature.perform(.setLanguage(.english))
+        await feature.run(.remove(account.id))
+        #expect(feature.state.message == CodeRelayLocalizer.text(
+            "accounts.error.unsafeRemovalTarget",
+            language: .english))
     }
 
     private static func makeDefaults(_ suffix: String) throws -> UserDefaults {
@@ -357,14 +405,6 @@ import Testing
             source: source,
             status: status,
             lastErrorDescription: lastErrorDescription)
-    }
-
-    private static var accountsViewSourceURL: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appending(path: "Sources/CodeRelayApp/Accounts/AccountsView.swift")
     }
 }
 

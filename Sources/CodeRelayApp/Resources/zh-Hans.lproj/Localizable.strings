@@ -1,0 +1,76 @@
+"app.language.label" = "语言";
+"app.language.option.zh-Hans" = "简体中文";
+"app.language.option.en" = "English";
+
+"accounts.title" = "托管 Codex 账号";
+"accounts.subtitle" = "在当前界面中管理账号、刷新用量并查看可用性。";
+"accounts.action.refreshUsage" = "刷新用量";
+"accounts.action.addAccount" = "添加账号";
+"accounts.action.setActive" = "设为当前";
+"accounts.action.reauthenticate" = "重新认证";
+"accounts.action.remove" = "移除";
+
+"accounts.badge.active" = "当前";
+"accounts.badge.live" = "生效中";
+
+"accounts.empty.title" = "还没有托管账号。";
+"accounts.empty.subtitle" = "使用“添加账号”在 CodeRelay 中接入新的 Codex 登录。";
+
+"accounts.lastAuthenticated.unavailable" = "上次认证：未提供";
+"accounts.lastAuthenticated.value" = "上次认证：%@";
+
+"accounts.monitoring.fiveHourUsage" = "5 小时用量：%@";
+"accounts.monitoring.weeklyUsage" = "每周用量：%@";
+"accounts.monitoring.lastRefreshed" = "上次刷新：%@";
+"accounts.monitoring.source" = "来源：%@";
+"accounts.monitoring.status" = "状态：%@";
+"accounts.monitoring.readiness" = "可用性：%@";
+
+"accounts.support.value" = "支持状态：%@";
+"accounts.support.withReason" = "支持状态：%@：%@";
+
+"accounts.usage.unavailable" = "未提供";
+"accounts.usage.summary.noReset" = "已用 %@，剩余 %@";
+"accounts.usage.summary.withReset" = "已用 %@，剩余 %@，重置时间 %@";
+
+"accounts.source.managedHomeOAuth" = "托管目录 OAuth";
+"accounts.source.cache" = "缓存";
+"accounts.source.unknown" = "未知";
+
+"accounts.status.fresh" = "最新";
+"accounts.status.stale" = "过期";
+"accounts.status.error" = "错误";
+"accounts.status.unknown" = "未知";
+"accounts.status.withReason" = "%@（%@）";
+
+"accounts.readiness.unavailable" = "未提供";
+"accounts.readiness.unknown" = "未知";
+"accounts.readiness.stale" = "过期";
+"accounts.readiness.error" = "错误";
+"accounts.readiness.both" = "5 小时剩余 %@，每周剩余 %@";
+"accounts.readiness.fiveHour" = "5 小时剩余 %@";
+"accounts.readiness.weekly" = "每周剩余 %@";
+
+"accounts.supportKind.supported" = "支持";
+"accounts.supportKind.unsupported" = "不支持";
+"accounts.supportKind.unverified" = "未验证";
+
+"accounts.message.added" = "已添加托管账号。";
+"accounts.message.noAccountsToRefresh" = "没有可刷新的托管账号。";
+"accounts.message.usageRefreshedCount" = "已刷新 %d 个账号的用量。";
+"accounts.message.usageRefreshMixed" = "用量刷新已完成，但包含过期或错误结果。";
+"accounts.message.activeUpdated" = "已更新当前账号。";
+"accounts.message.reauthenticated" = "已重新认证托管账号。";
+"accounts.message.removed" = "已移除托管账号。";
+
+"accounts.error.missingAccount" = "找不到所选的托管账号。";
+"accounts.error.missingIdentity" = "登录完成后未返回托管账号身份信息。";
+"accounts.error.unsafeRemovalTarget" = "待移除的托管目录不在 CodeRelay 的管理根目录下。";
+"accounts.error.loginMissingBinary" = "PATH 中找不到 codex CLI。";
+"accounts.error.loginLaunchFailed" = "启动 codex 登录失败：%@";
+"accounts.error.loginTimedOut" = "codex 登录已超时。";
+"accounts.error.loginFailedStatus" = "codex 登录失败，状态码为 %d。";
+"accounts.error.loginFailedStatusWithOutput" = "codex 登录失败，状态码为 %d：%@";
+"accounts.error.storeAccountNotFound" = "找不到托管账号记录。";
+"accounts.error.storeUnsupportedVersion" = "磁盘中的托管账号数据版本 %d 不受支持。";
+"accounts.error.usageStoreUnsupportedVersion" = "磁盘中的用量快照数据版本 %d 不受支持。";

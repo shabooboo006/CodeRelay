@@ -8,10 +8,17 @@
 	<string>CodeRelay</string>
 	<key>CFBundleExecutable</key>
 	<string>CodeRelayApp</string>
+	<key>CFBundleIconFile</key>
+	<string>Icon</string>
 	<key>CFBundleIdentifier</key>
 	<string>io.github.shabooboo006.CodeRelay</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hans</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>CodeRelay</string>
 	<key>CFBundlePackageType</key>
@@ -32,4 +39,3 @@
 	<true/>
 </dict>
 </plist>
-

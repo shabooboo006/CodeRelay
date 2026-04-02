@@ -3,16 +3,19 @@ import CodeRelayCore
 import Foundation
 
 public let defaultActiveManagedAccountIDKey = "activeManagedAccountID"
+public let defaultPreferredAppLanguageKey = "preferredAppLanguage"
 
 @MainActor
 public final class AppContainer {
     public static let activeManagedAccountIDKey = defaultActiveManagedAccountIDKey
+    public static let preferredAppLanguageKey = defaultPreferredAppLanguageKey
 
     public struct Services {
         public var paths: CodeRelayPaths
         public var fileManager: FileManager
         public var userDefaults: UserDefaults
         public var activeManagedAccountIDKey: String
+        public var preferredAppLanguageKey: String
         public var managedAccountStore: any ManagedAccountStore
         public var managedAccountUsageStore: any ManagedAccountUsageStore
         public var accountProjection: any AccountProjection
@@ -27,6 +30,7 @@ public final class AppContainer {
             fileManager: FileManager = .default,
             userDefaults: UserDefaults = .standard,
             activeManagedAccountIDKey: String = defaultActiveManagedAccountIDKey,
+            preferredAppLanguageKey: String = defaultPreferredAppLanguageKey,
             managedAccountStore: (any ManagedAccountStore)? = nil,
             managedAccountUsageStore: (any ManagedAccountUsageStore)? = nil,
             accountProjection: (any AccountProjection)? = nil,
@@ -40,6 +44,7 @@ public final class AppContainer {
             self.fileManager = fileManager
             self.userDefaults = userDefaults
             self.activeManagedAccountIDKey = activeManagedAccountIDKey
+            self.preferredAppLanguageKey = preferredAppLanguageKey
 
             let resolvedIdentityReader = codexIdentityReader ?? DefaultCodexIdentityReader(fileManager: fileManager)
             self.codexIdentityReader = resolvedIdentityReader

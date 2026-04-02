@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "CodeRelay",
+    defaultLocalization: "en",
     platforms: [
         .macOS("15.0"),
     ],
@@ -19,7 +20,10 @@ let package = Package(
                 "CodeRelayCore",
                 "CodeRelayCodex",
             ],
-            path: "Sources/CodeRelayApp"
+            path: "Sources/CodeRelayApp",
+            resources: [
+                .process("Resources"),
+            ]
         ),
         .target(
             name: "CodeRelayCore",

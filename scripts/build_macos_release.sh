@@ -9,19 +9,36 @@ MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 PLIST_TEMPLATE="$ROOT_DIR/Packaging/macOS/Info.plist"
 PLIST_PATH="$CONTENTS_DIR/Info.plist"
+ICONSET_SOURCE="$ROOT_DIR/Packaging/macOS/AppIcon.appiconset"
+ICON_BUILD_SCRIPT="$ROOT_DIR/scripts/build_icon.sh"
+ICON_ICNS_PATH="$ROOT_DIR/Packaging/macOS/Icon.icns"
 PRODUCT_NAME="CodeRelayApp"
 APP_NAME="CodeRelay"
-VERSION="${VERSION:-0.1.0-alpha.1}"
-BUILD_NUMBER="${BUILD_NUMBER:-1}"
+VERSION="${VERSION:-0.1.0-alpha.2}"
+BUILD_NUMBER="${BUILD_NUMBER:-2}"
 
 rm -rf "$BUILD_DIR" "$APP_DIR"
 mkdir -p "$BUILD_DIR" "$MACOS_DIR" "$RESOURCES_DIR"
 
 swift build -c release --product "$PRODUCT_NAME" --package-path "$ROOT_DIR"
 
-BIN_PATH="$(swift build -c release --product "$PRODUCT_NAME" --package-path "$ROOT_DIR" --show-bin-path)/$PRODUCT_NAME"
+if [[ ! -d "$ICONSET_SOURCE" ]]; then
+  echo "ERROR: Missing app icon source at $ICONSET_SOURCE" >&2
+  exit 1
+fi
+
+zsh "$ICON_BUILD_SCRIPT" "$ICONSET_SOURCE" "$ICON_ICNS_PATH" >/dev/null
+
+BIN_DIR="$(swift build -c release --product "$PRODUCT_NAME" --package-path "$ROOT_DIR" --show-bin-path)"
+BIN_PATH="$BIN_DIR/$PRODUCT_NAME"
 cp "$BIN_PATH" "$MACOS_DIR/$PRODUCT_NAME"
 chmod +x "$MACOS_DIR/$PRODUCT_NAME"
+
+cp "$ICON_ICNS_PATH" "$RESOURCES_DIR/Icon.icns"
+
+find "$BIN_DIR" -maxdepth 1 -name '*.bundle' -type d -print0 | while IFS= read -r -d '' bundle_path; do
+  cp -R "$bundle_path" "$RESOURCES_DIR/$(basename "$bundle_path")"
+done
 
 sed \
   -e "s/__VERSION__/$VERSION/g" \

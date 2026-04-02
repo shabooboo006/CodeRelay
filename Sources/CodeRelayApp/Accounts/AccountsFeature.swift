@@ -13,6 +13,7 @@ public final class AccountsFeature: ObservableObject {
     public enum Action: Equatable, Sendable {
         case addAccount
         case refreshMonitoring
+        case setLanguage(AppLanguage)
         case setActive(UUID)
         case reauthenticate(UUID)
         case remove(UUID)
@@ -22,6 +23,7 @@ public final class AccountsFeature: ObservableObject {
         public var rows: [AccountProjectionRow]
         public var activeManagedAccountID: UUID?
         public var liveIdentity: ManagedAccountIdentity?
+        public var selectedLanguage: AppLanguage
         public var isBusy: Bool
         public var message: String?
         public var lastAction: Action?
@@ -30,6 +32,7 @@ public final class AccountsFeature: ObservableObject {
             rows: [AccountProjectionRow] = [],
             activeManagedAccountID: UUID? = nil,
             liveIdentity: ManagedAccountIdentity? = nil,
+            selectedLanguage: AppLanguage = .defaultValue,
             isBusy: Bool = false,
             message: String? = nil,
             lastAction: Action? = nil)
@@ -37,6 +40,7 @@ public final class AccountsFeature: ObservableObject {
             self.rows = rows
             self.activeManagedAccountID = activeManagedAccountID
             self.liveIdentity = liveIdentity
+            self.selectedLanguage = selectedLanguage
             self.isBusy = isBusy
             self.message = message
             self.lastAction = lastAction
@@ -53,7 +57,11 @@ public final class AccountsFeature: ObservableObject {
         recordedActions: [Action] = [])
     {
         self.services = services
-        self.state = state
+        var resolvedState = state
+        resolvedState.selectedLanguage = Self.resolvePreferredAppLanguage(
+            rawValue: services.userDefaults.string(forKey: services.preferredAppLanguageKey))
+            ?? resolvedState.selectedLanguage
+        self.state = resolvedState
         self.recordedActions = recordedActions
     }
 
@@ -61,7 +69,7 @@ public final class AccountsFeature: ObservableObject {
         do {
             try self.refresh()
         } catch {
-            self.state.message = Self.describe(error)
+            self.state.message = self.describe(error)
         }
     }
 
@@ -92,7 +100,7 @@ public final class AccountsFeature: ObservableObject {
         do {
             try await self.perform(action)
         } catch {
-            self.state.message = Self.describe(error)
+            self.state.message = self.describe(error)
         }
     }
 
@@ -106,6 +114,8 @@ public final class AccountsFeature: ObservableObject {
             try await self.addAccount()
         case .refreshMonitoring:
             try await self.refreshMonitoring()
+        case let .setLanguage(language):
+            self.setLanguage(language)
         case let .setActive(accountID):
             try self.setActive(accountID)
         case let .reauthenticate(accountID):
@@ -137,7 +147,7 @@ public final class AccountsFeature: ObservableObject {
             self.persistActiveManagedAccountID(stored.id)
         }
 
-        self.state.message = "Managed account added."
+        self.state.message = CodeRelayLocalizer.text("accounts.message.added", language: self.state.selectedLanguage)
         try self.refresh(liveIdentity: identity)
     }
 
@@ -148,7 +158,7 @@ public final class AccountsFeature: ObservableObject {
             }
 
         guard !accounts.isEmpty else {
-            self.state.message = "No managed accounts to refresh."
+            self.state.message = CodeRelayLocalizer.text("accounts.message.noAccountsToRefresh", language: self.state.selectedLanguage)
             try self.refresh()
             return
         }
@@ -180,15 +190,21 @@ public final class AccountsFeature: ObservableObject {
 
         try self.refresh(liveIdentity: self.state.liveIdentity)
         self.state.message = staleOrErrorCount == 0
-            ? "Usage refreshed for \(freshCount) accounts."
-            : "Usage refresh completed with stale or error results."
+            ? CodeRelayLocalizer.format("accounts.message.usageRefreshedCount", language: self.state.selectedLanguage, freshCount)
+            : CodeRelayLocalizer.text("accounts.message.usageRefreshMixed", language: self.state.selectedLanguage)
     }
 
     private func setActive(_ accountID: UUID) throws {
         _ = try self.account(id: accountID)
         self.persistActiveManagedAccountID(accountID)
-        self.state.message = "Active account updated."
+        self.state.message = CodeRelayLocalizer.text("accounts.message.activeUpdated", language: self.state.selectedLanguage)
         try self.refresh()
+    }
+
+    private func setLanguage(_ language: AppLanguage) {
+        self.persistPreferredAppLanguage(language)
+        self.state.selectedLanguage = language
+        self.state.message = nil
     }
 
     private func reauthenticate(_ accountID: UUID) async throws {
@@ -211,7 +227,7 @@ public final class AccountsFeature: ObservableObject {
             switchSupport: supportState,
             lastValidatedIdentity: identity), existingAccountID: accountID)
 
-        self.state.message = "Managed account re-authenticated."
+        self.state.message = CodeRelayLocalizer.text("accounts.message.reauthenticated", language: self.state.selectedLanguage)
         try self.refresh(liveIdentity: identity)
     }
 
@@ -228,7 +244,7 @@ public final class AccountsFeature: ObservableObject {
             self.persistActiveManagedAccountID(nil)
         }
 
-        self.state.message = "Managed account removed."
+        self.state.message = CodeRelayLocalizer.text("accounts.message.removed", language: self.state.selectedLanguage)
         try self.refresh()
     }
 
@@ -253,6 +269,12 @@ public final class AccountsFeature: ObservableObject {
         return UUID(uuidString: rawValue)
     }
 
+    private func persistedPreferredAppLanguage() -> AppLanguage {
+        Self.resolvePreferredAppLanguage(
+            rawValue: self.services.userDefaults.string(forKey: self.services.preferredAppLanguageKey))
+            ?? .defaultValue
+    }
+
     private func persistActiveManagedAccountID(_ accountID: UUID?) {
         switch accountID {
         case let accountID?:
@@ -262,13 +284,75 @@ public final class AccountsFeature: ObservableObject {
         }
     }
 
-    private static func describe(_ error: Error) -> String {
+    private func persistPreferredAppLanguage(_ language: AppLanguage) {
+        self.services.userDefaults.set(language.rawValue, forKey: self.services.preferredAppLanguageKey)
+    }
+
+    private func describe(_ error: Error) -> String {
+        let language = self.persistedPreferredAppLanguage()
+
+        if let error = error as? AccountsFeatureError {
+            switch error {
+            case .missingAccount:
+                return CodeRelayLocalizer.text("accounts.error.missingAccount", language: language)
+            case .missingIdentity:
+                return CodeRelayLocalizer.text("accounts.error.missingIdentity", language: language)
+            }
+        }
+
+        if let error = error as? ManagedHomeSafetyError {
+            switch error {
+            case .outsideManagedRoot:
+                return CodeRelayLocalizer.text("accounts.error.unsafeRemovalTarget", language: language)
+            }
+        }
+
+        if let error = error as? CodexLoginRunnerError {
+            switch error {
+            case .missingBinary:
+                return CodeRelayLocalizer.text("accounts.error.loginMissingBinary", language: language)
+            case let .launchFailed(message):
+                return CodeRelayLocalizer.format("accounts.error.loginLaunchFailed", language: language, message)
+            case .timedOut:
+                return CodeRelayLocalizer.text("accounts.error.loginTimedOut", language: language)
+            case let .failed(status, output):
+                let trimmedOutput = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmedOutput.isEmpty else {
+                    return CodeRelayLocalizer.format("accounts.error.loginFailedStatus", language: language, Int(status))
+                }
+                return CodeRelayLocalizer.format("accounts.error.loginFailedStatusWithOutput", language: language, Int(status), trimmedOutput)
+            }
+        }
+
+        if let error = error as? ManagedAccountStoreError {
+            switch error {
+            case .accountNotFound:
+                return CodeRelayLocalizer.text("accounts.error.storeAccountNotFound", language: language)
+            case let .unsupportedVersion(version):
+                return CodeRelayLocalizer.format("accounts.error.storeUnsupportedVersion", language: language, version)
+            }
+        }
+
+        if let error = error as? ManagedAccountUsageStoreError {
+            switch error {
+            case let .unsupportedVersion(version):
+                return CodeRelayLocalizer.format("accounts.error.usageStoreUnsupportedVersion", language: language, version)
+            }
+        }
+
         if let localized = error as? LocalizedError,
            let description = localized.errorDescription
         {
             return description
         }
         return String(describing: error)
+    }
+
+    private static func resolvePreferredAppLanguage(rawValue: String?) -> AppLanguage? {
+        guard let rawValue else {
+            return nil
+        }
+        return AppLanguage(rawValue: rawValue)
     }
 
     private static func snapshot(

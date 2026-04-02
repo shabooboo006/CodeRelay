@@ -1,0 +1,76 @@
+"app.language.label" = "Language";
+"app.language.option.zh-Hans" = "Simplified Chinese";
+"app.language.option.en" = "English";
+
+"accounts.title" = "Managed Codex Accounts";
+"accounts.subtitle" = "Manage accounts, refresh usage, and review readiness from the current surface.";
+"accounts.action.refreshUsage" = "Refresh Usage";
+"accounts.action.addAccount" = "Add Account";
+"accounts.action.setActive" = "Set Active";
+"accounts.action.reauthenticate" = "Re-authenticate";
+"accounts.action.remove" = "Remove";
+
+"accounts.badge.active" = "Active";
+"accounts.badge.live" = "Live";
+
+"accounts.empty.title" = "No managed accounts yet.";
+"accounts.empty.subtitle" = "Use Add Account to enroll a CodeRelay-scoped Codex login.";
+
+"accounts.lastAuthenticated.unavailable" = "Last authenticated: unavailable";
+"accounts.lastAuthenticated.value" = "Last authenticated: %@";
+
+"accounts.monitoring.fiveHourUsage" = "5-hour usage: %@";
+"accounts.monitoring.weeklyUsage" = "Weekly usage: %@";
+"accounts.monitoring.lastRefreshed" = "Last refreshed: %@";
+"accounts.monitoring.source" = "Source: %@";
+"accounts.monitoring.status" = "Status: %@";
+"accounts.monitoring.readiness" = "Readiness: %@";
+
+"accounts.support.value" = "Support: %@";
+"accounts.support.withReason" = "Support: %@: %@";
+
+"accounts.usage.unavailable" = "unavailable";
+"accounts.usage.summary.noReset" = "%@ used, %@ remaining";
+"accounts.usage.summary.withReset" = "%@ used, %@ remaining, reset %@";
+
+"accounts.source.managedHomeOAuth" = "managed-home oauth";
+"accounts.source.cache" = "cache";
+"accounts.source.unknown" = "unknown";
+
+"accounts.status.fresh" = "fresh";
+"accounts.status.stale" = "stale";
+"accounts.status.error" = "error";
+"accounts.status.unknown" = "unknown";
+"accounts.status.withReason" = "%@ (%@)";
+
+"accounts.readiness.unavailable" = "unavailable";
+"accounts.readiness.unknown" = "unknown";
+"accounts.readiness.stale" = "stale";
+"accounts.readiness.error" = "error";
+"accounts.readiness.both" = "%@ 5-hour remaining, %@ weekly remaining";
+"accounts.readiness.fiveHour" = "%@ 5-hour remaining";
+"accounts.readiness.weekly" = "%@ weekly remaining";
+
+"accounts.supportKind.supported" = "supported";
+"accounts.supportKind.unsupported" = "unsupported";
+"accounts.supportKind.unverified" = "unverified";
+
+"accounts.message.added" = "Managed account added.";
+"accounts.message.noAccountsToRefresh" = "No managed accounts to refresh.";
+"accounts.message.usageRefreshedCount" = "Usage refreshed for %d accounts.";
+"accounts.message.usageRefreshMixed" = "Usage refresh completed with stale or error results.";
+"accounts.message.activeUpdated" = "Active account updated.";
+"accounts.message.reauthenticated" = "Managed account re-authenticated.";
+"accounts.message.removed" = "Managed account removed.";
+
+"accounts.error.missingAccount" = "The selected managed account could not be found.";
+"accounts.error.missingIdentity" = "The managed account did not return an identity after login.";
+"accounts.error.unsafeRemovalTarget" = "The managed home path is outside CodeRelay's managed root.";
+"accounts.error.loginMissingBinary" = "The codex CLI could not be found on PATH.";
+"accounts.error.loginLaunchFailed" = "Failed to launch codex login: %@";
+"accounts.error.loginTimedOut" = "codex login timed out.";
+"accounts.error.loginFailedStatus" = "codex login failed with status %d.";
+"accounts.error.loginFailedStatusWithOutput" = "codex login failed with status %d: %@";
+"accounts.error.storeAccountNotFound" = "The managed account record could not be found.";
+"accounts.error.storeUnsupportedVersion" = "The managed account data on disk uses an unsupported version (%d).";
+"accounts.error.usageStoreUnsupportedVersion" = "The usage snapshot data on disk uses an unsupported version (%d).";

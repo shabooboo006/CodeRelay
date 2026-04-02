@@ -5,13 +5,13 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
 STAGE_DIR="$DIST_DIR/stage"
 APP_DIR="$DIST_DIR/CodeRelay.app"
-VERSION="${VERSION:-0.1.0-alpha.1}"
-BUILD_NUMBER="${BUILD_NUMBER:-1}"
+VERSION="${VERSION:-0.1.0-alpha.2}"
+BUILD_NUMBER="${BUILD_NUMBER:-2}"
 PKG_PATH="$DIST_DIR/CodeRelay-$VERSION.pkg"
 DMG_PATH="$DIST_DIR/CodeRelay-$VERSION.dmg"
 ZIP_PATH="$DIST_DIR/CodeRelay-$VERSION-macOS.zip"
 
-"$ROOT_DIR/scripts/build_macos_release.sh" >/dev/null
+zsh "$ROOT_DIR/scripts/build_macos_release.sh" >/dev/null
 
 rm -rf "$STAGE_DIR" "$PKG_PATH" "$DMG_PATH" "$ZIP_PATH"
 mkdir -p "$STAGE_DIR"
