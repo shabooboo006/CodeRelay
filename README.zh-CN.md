@@ -1,0 +1,103 @@
+# CodeRelay
+
+[English](README.md)
+
+CodeRelay 是一个面向 macOS 的 Codex 辅助应用，适合需要管理多个 Codex 账号的用户。它会为每个账号维护独立的 `CODEX_HOME`，避免凭据互相污染，并基于最近一次使用量快照展示哪些账号当前更适合切换过去使用。
+
+## 当前状态
+
+当前代码已经可以用于“账号纳管 + 使用量可见性”，但还不是完整的账号切换器。
+
+已实现：
+
+- 在 CodeRelay 管理的独立目录中执行 `codex login` 来添加账号
+- 列出、重新认证、删除托管账号
+- 在本地将某个托管账号标记为当前选中的 active 账号
+- 从托管账号的 `auth.json` 中读取身份信息
+- 检测账号凭据是 `file`、`keyring` 还是未验证状态
+- 刷新全部托管账号的使用量快照，并在 UI 中显示 readiness 信息
+- 将账号元数据和使用量快照持久化到 `~/Library/Application Support/CodeRelay`
+
+尚未实现：
+
+- 替换线上生效的 `~/.codex/auth.json` 和 `~/.codex/config.toml`
+- 自动预警、后台监控、菜单栏工作流
+- 切换后自动恢复 Codex 会话或重建 CLI / App 工作流
+
+## 运行要求
+
+- macOS 15.0+
+- 支持 SwiftPM 的 Swift 工具链
+- `PATH` 中可用的 `codex`
+
+点击 `Add Account` 时，CodeRelay 实际执行的是：
+
+```bash
+codex -c 'cli_auth_credentials_store="file"' login
+```
+
+这意味着当前版本最适合 file-backed 的 Codex 凭据。对于 keyring-backed 账号，CodeRelay 会识别出来，并在 UI 中标记为不适合做基于文件隔离的安全切换。
+
+## 构建与运行
+
+本地开发可直接执行：
+
+```bash
+swift build
+swift test
+swift run CodeRelayApp
+```
+
+## 打包发布
+
+如果需要构建可分发的 macOS 应用及压缩包：
+
+```bash
+zsh ./scripts/package_macos_release.sh
+```
+
+产物会输出到 `dist/`：
+
+- `CodeRelay.app`
+- `CodeRelay-<VERSION>-macOS.zip`
+- `CodeRelay-<VERSION>.pkg`
+- `CodeRelay-<VERSION>.dmg`
+
+默认情况下，这些产物只会是未签名或 ad-hoc 签名版本。若要正式分发，还需要补充 Developer ID 签名与 notarization 流程。
+
+## 工作方式
+
+1. 每个托管账号都会分配一个独立目录：`~/Library/Application Support/CodeRelay/managed-codex-homes/<uuid>/`
+2. CodeRelay 将 `CODEX_HOME` 指向该目录后执行 `codex login`
+3. 它从托管目录中的 `auth.json` 读取身份信息，并把账号元数据保存到本地 JSON 注册表
+4. 刷新使用量时，会读取托管账号 token，调用 Codex 使用量接口，然后把快照写回本地
+5. UI 会用这些快照展示当前 active 账号的使用情况，以及其他账号的 readiness
+
+当前的 `Set Active` 只会修改 CodeRelay 内部保存的选中状态，并不会真正改写线上生效的 `~/.codex` 文件。
+
+## 本地数据位置
+
+当前版本会把数据写到以下位置：
+
+- `~/Library/Application Support/CodeRelay/managed-codex-accounts.json`
+- `~/Library/Application Support/CodeRelay/usage-snapshots.json`
+- `~/Library/Application Support/CodeRelay/managed-codex-homes/<uuid>/`
+
+在 macOS 上，JSON 存储文件会采用原子写入，并设置为 `0600` 权限。
+
+## 项目结构
+
+- `Sources/CodeRelayApp`：SwiftUI 应用壳与账号管理界面
+- `Sources/CodeRelayCore`：账号模型、投影逻辑、持久化与文件安全校验
+- `Sources/CodeRelayCodex`：Codex 登录、身份读取、凭据模式检测、使用量刷新
+- `Tests/CodeRelayAppTests`：面向 UI 功能的测试
+- `Tests/CodeRelayCoreTests`：核心模型与存储测试
+- `Tests/CodeRelayCodexTests`：Codex 集成单元测试
+
+## 当前限制
+
+- 仅支持 macOS
+- 依赖本机已安装的 `codex` CLI
+- 还不能真正切换到线上 `~/.codex`
+- 还没有菜单栏应用壳
+- 还没有自动恢复会话能力

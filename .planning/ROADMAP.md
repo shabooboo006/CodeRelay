@@ -14,6 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Managed Account Foundation** - Establish safe Codex-only account enrollment, storage, identity, and active-account control.
 - [ ] **Phase 2: Usage Monitoring & Readiness** - Make active-account usage and alternate-account readiness trustworthy before any switching.
+- [ ] **Phase 2.1: App Icon & Multilingual Support (INSERTED)** - Give CodeRelay a shippable app identity and bilingual core UI before warning/switch workflows expand further.
 - [ ] **Phase 3: Threshold Warnings** - Warn early with source-aware risk signals and alternate-account suggestions.
 - [ ] **Phase 4: Safe Account Switch Transactions** - Deliver confirmed, rollback-safe account switching with verified post-switch state.
 - [ ] **Phase 5: CLI Relaunch & Continuity UX** - Close the loop for CodeRelay-managed CLI restart, resume, and recovery surfaces.
@@ -50,6 +51,21 @@ Plans:
 - [x] `02-01-PLAN.md` — Add explicit monitoring domain models, persisted snapshots, and readiness-aware account projection.
 - [x] `02-02-PLAN.md` — Implement managed-home OAuth usage fetch plus typed refresh fallback results.
 - [x] `02-03-PLAN.md` — Wire manual refresh and alternate readiness into the existing accounts surface.
+
+### Phase 02.1: App Icon & Multilingual Support (INSERTED)
+
+**Goal:** Users see a recognizable CodeRelay app identity and can use the current app surface in English or Simplified Chinese without mixed-language friction.
+**Depends on:** Phase 2
+**Requirements**: BRAND-01, I18N-01, I18N-02
+**Success Criteria** (what must be TRUE):
+  1. Packaged macOS app bundles and release artifacts include a real CodeRelay app icon instead of the default executable icon.
+  2. The current SwiftUI app shell and managed-account flows render in English and Simplified Chinese based on system locale.
+  3. The primary flows avoid mixed-language labels or messages, while keeping the product name `CodeRelay` unchanged across locales.
+**Plans:** 2 plans
+
+Plans:
+- [ ] `02.1-01-PLAN.md` — Add a reproducible app-icon pipeline and SwiftPM-compatible localization resource foundation.
+- [ ] `02.1-02-PLAN.md` — Localize the current app surface and lock it down with bilingual verification.
 
 ### Phase 3: Threshold Warnings
 **Goal**: Users get early, actionable warnings when an active account approaches exhaustion without losing control of when to switch.
@@ -101,6 +117,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Managed Account Foundation | 3/3 | Manual UAT pending | - |
 | 2. Usage Monitoring & Readiness | 3/3 | Complete | - |
+| 2.1. App Icon & Multilingual Support | 0/2 | Planned | - |
 | 3. Threshold Warnings | 0/TBD | Not started | - |
 | 4. Safe Account Switch Transactions | 0/TBD | Not started | - |
 | 5. CLI Relaunch & Continuity UX | 0/TBD | Not started | - |

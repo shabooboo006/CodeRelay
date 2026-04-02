@@ -48,6 +48,12 @@
 - [ ] **UI-01**: User can access active-account health, warnings, and switch actions from a lightweight macOS surface such as a menu bar entry.
 - [ ] **UI-02**: User can open a detailed settings surface for managed accounts, thresholds, refresh state, and recent switch outcomes.
 
+### Branding & Localization
+
+- [ ] **BRAND-01**: User sees a custom CodeRelay app icon in the packaged macOS app and release artifacts.
+- [ ] **I18N-01**: User can use the current CodeRelay app surface in English or Simplified Chinese based on system locale without mixed-language primary flows.
+- [ ] **I18N-02**: Product name stays `CodeRelay`, while static labels, actions, empty states, and status messaging come from shared localized app resources instead of duplicated hard-coded strings.
+
 ## v2 Requirements
 
 ### Codex App Validation
@@ -104,12 +110,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-03 | Phase 5 | Pending |
 | UI-01 | Phase 5 | Pending |
 | UI-02 | Phase 5 | Pending |
+| BRAND-01 | Phase 2.1 | Pending |
+| I18N-01 | Phase 2.1 | Pending |
+| I18N-02 | Phase 2.1 | Pending |
 
 **Coverage:**
-- v1 requirements: 25 total
-- Mapped to phases: 25
+- v1 requirements: 28 total
+- Mapped to phases: 28
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-02 after Phase 02-03 execution*
+*Last updated: 2026-04-02 after inserting Phase 02.1*

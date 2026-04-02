@@ -1,21 +1,28 @@
 import CodeRelayCore
 import SwiftUI
 
+public enum AccountsViewMode: Sendable {
+    case setup
+    case management
+}
+
 public struct AccountsView: View {
     @ObservedObject private var feature: AccountsFeature
+    private let mode: AccountsViewMode
 
-    public init(feature: AccountsFeature) {
+    public init(feature: AccountsFeature, mode: AccountsViewMode = .management) {
         self.feature = feature
+        self.mode = mode
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top, spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(self.localized("accounts.title"))
+                    Text(self.localized(self.mode == .setup ? "setup.title" : "accounts.title"))
                         .font(.title2)
                         .fontWeight(.semibold)
-                    Text(self.localized("accounts.subtitle"))
+                    Text(self.localized(self.mode == .setup ? "setup.subtitle" : "manage.subtitle"))
                         .foregroundStyle(.secondary)
                 }
 
@@ -31,19 +38,32 @@ public struct AccountsView: View {
                     .pickerStyle(.menu)
                     .frame(width: 170)
 
-                    Button(self.localized("accounts.action.refreshUsage")) {
-                        Task {
-                            await self.feature.run(.refreshMonitoring)
+                    if self.mode == .management {
+                        Button(self.localized("accounts.action.refreshUsage")) {
+                            Task {
+                                await self.feature.run(.refreshMonitoring)
+                            }
                         }
+                        .disabled(self.feature.state.isBusy || self.feature.state.rows.isEmpty)
                     }
-                    .disabled(self.feature.state.isBusy || self.feature.state.rows.isEmpty)
 
-                    Button(self.localized("accounts.action.addAccount")) {
-                        Task {
-                            await self.feature.run(.addAccount)
+                    if self.mode == .setup {
+                        Button(self.localized("accounts.action.addAccount")) {
+                            Task {
+                                await self.feature.run(.addAccount)
+                            }
                         }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(self.feature.state.isBusy)
+                    } else {
+                        Button(self.localized("accounts.action.addAccount")) {
+                            Task {
+                                await self.feature.run(.addAccount)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(self.feature.state.isBusy)
                     }
-                    .disabled(self.feature.state.isBusy)
                 }
             }
 
@@ -55,13 +75,13 @@ public struct AccountsView: View {
 
             if self.feature.state.rows.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(self.localized("accounts.empty.title"))
+                    Text(self.localized(self.mode == .setup ? "setup.empty.title" : "accounts.empty.title"))
                         .font(.headline)
-                    Text(self.localized("accounts.empty.subtitle"))
+                    Text(self.localized(self.mode == .setup ? "setup.empty.subtitle" : "accounts.empty.subtitle"))
                         .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(.top, 24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: self.mode == .setup ? .center : .topLeading)
+                .padding(.top, self.mode == .setup ? 0 : 24)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 12) {
@@ -81,7 +101,7 @@ public struct AccountsView: View {
                                 Text(CodeRelayLocalizer.supportLabel(row.supportState, language: self.language))
                                     .foregroundStyle(.secondary)
 
-                                Text(self.lastAuthenticatedCopy(row.lastAuthenticatedAt))
+                                Text(AccountsCopy.lastAuthenticated(row.lastAuthenticatedAt, language: self.language))
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
 
@@ -140,16 +160,6 @@ public struct AccountsView: View {
         CodeRelayLocalizer.text(key, language: self.language)
     }
 
-    private func lastAuthenticatedCopy(_ date: Date?) -> String {
-        guard let date else {
-            return self.localized("accounts.lastAuthenticated.unavailable")
-        }
-        return CodeRelayLocalizer.format(
-            "accounts.lastAuthenticated.value",
-            language: self.language,
-            CodeRelayLocalizer.formattedDate(date, language: self.language))
-    }
-
     @ViewBuilder
     private func monitoringDetails(for row: AccountProjectionRow) -> some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -157,145 +167,35 @@ public struct AccountsView: View {
                 Text(CodeRelayLocalizer.format(
                     "accounts.monitoring.fiveHourUsage",
                     language: self.language,
-                    self.usageCopy(window: row.fiveHourWindow)))
+                    AccountsCopy.usage(window: row.fiveHourWindow, language: self.language)))
                 Text(CodeRelayLocalizer.format(
                     "accounts.monitoring.weeklyUsage",
                     language: self.language,
-                    self.usageCopy(window: row.weeklyWindow)))
+                    AccountsCopy.usage(window: row.weeklyWindow, language: self.language)))
             }
 
             Text(CodeRelayLocalizer.format(
                 "accounts.monitoring.lastRefreshed",
                 language: self.language,
-                self.lastRefreshedCopy(row.lastUsageRefreshAt)))
+                AccountsCopy.lastRefreshed(row.lastUsageRefreshAt, language: self.language)))
             Text(CodeRelayLocalizer.format(
                 "accounts.monitoring.source",
                 language: self.language,
-                self.sourceCopy(row.usageSource)))
+                AccountsCopy.source(row.usageSource, language: self.language)))
             Text(CodeRelayLocalizer.format(
                 "accounts.monitoring.status",
                 language: self.language,
-                self.statusCopy(row)))
+                AccountsCopy.status(row, language: self.language)))
 
             if !row.isActive {
                 Text(CodeRelayLocalizer.format(
                     "accounts.monitoring.readiness",
                     language: self.language,
-                    self.readinessCopy(row)))
+                    AccountsCopy.readiness(row, language: self.language)))
             }
         }
         .font(.footnote)
         .foregroundStyle(.secondary)
-    }
-
-    private func usageCopy(window: RateWindow?) -> String {
-        guard let window else {
-            return self.localized("accounts.usage.unavailable")
-        }
-
-        let used = CodeRelayLocalizer.formattedPercent(window.usedPercent, language: self.language)
-        let remaining = CodeRelayLocalizer.formattedPercent(window.remainingPercent, language: self.language)
-        let reset = self.resetCopy(window)
-
-        if reset.isEmpty {
-            return CodeRelayLocalizer.format(
-                "accounts.usage.summary.noReset",
-                language: self.language,
-                used,
-                remaining)
-        }
-
-        return CodeRelayLocalizer.format(
-            "accounts.usage.summary.withReset",
-            language: self.language,
-            used,
-            remaining,
-            reset)
-    }
-
-    private func resetCopy(_ window: RateWindow) -> String {
-        let description = window.resetDescription?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedDescription = description?.isEmpty == false ? description : nil
-
-        if let trimmedDescription,
-           let date = window.resetsAt
-        {
-            return "\(trimmedDescription) (\(CodeRelayLocalizer.formattedDate(date, language: self.language)))"
-        }
-
-        if let trimmedDescription {
-            return trimmedDescription
-        }
-
-        if let date = window.resetsAt {
-            return CodeRelayLocalizer.formattedDate(date, language: self.language)
-        }
-
-        return ""
-    }
-
-    private func lastRefreshedCopy(_ date: Date?) -> String {
-        guard let date else {
-            return self.localized("accounts.usage.unavailable")
-        }
-        return CodeRelayLocalizer.formattedDate(date, language: self.language)
-    }
-
-    private func sourceCopy(_ source: UsageProbeSource) -> String {
-        CodeRelayLocalizer.usageSourceLabel(source, language: self.language)
-    }
-
-    private func statusCopy(_ row: AccountProjectionRow) -> String {
-        let status = CodeRelayLocalizer.usageStatusLabel(row.usageStatus, language: self.language)
-        guard let error = row.usageErrorDescription,
-              !error.isEmpty,
-              row.usageStatus != .fresh
-        else {
-            return status
-        }
-        return CodeRelayLocalizer.format("accounts.status.withReason", language: self.language, status, error)
-    }
-
-    private func readinessCopy(_ row: AccountProjectionRow) -> String {
-        guard let readiness = row.alternateReadiness else {
-            return self.localized("accounts.readiness.unavailable")
-        }
-
-        if readiness.status == .fresh {
-            let fiveHour = readiness.fiveHourRemainingPercent.map { value in
-                CodeRelayLocalizer.formattedPercent(value, language: self.language)
-            }
-            let weekly = readiness.weeklyRemainingPercent.map { value in
-                CodeRelayLocalizer.formattedPercent(value, language: self.language)
-            }
-
-            if let fiveHour,
-               let weekly
-            {
-                return CodeRelayLocalizer.format("accounts.readiness.both", language: self.language, fiveHour, weekly)
-            }
-
-            if let fiveHour {
-                return CodeRelayLocalizer.format("accounts.readiness.fiveHour", language: self.language, fiveHour)
-            }
-
-            if let weekly {
-                return CodeRelayLocalizer.format("accounts.readiness.weekly", language: self.language, weekly)
-            }
-
-            return self.localized("accounts.readiness.unknown")
-        }
-
-        switch readiness.status {
-        case .stale:
-            return self.localized("accounts.readiness.stale")
-        case .error:
-            return self.localized("accounts.readiness.error")
-        case .unknown:
-            return self.localized("accounts.readiness.unknown")
-        case .fresh:
-            return self.localized("accounts.readiness.unknown")
-        }
     }
 
     private static func badge(_ text: String) -> some View {

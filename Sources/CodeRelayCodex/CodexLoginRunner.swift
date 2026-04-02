@@ -63,6 +63,7 @@ public protocol CodexLoginRunner: Sendable {
 
 public struct DefaultCodexLoginRunner: CodexLoginRunner, @unchecked Sendable {
     public typealias Executor = @Sendable (CodexLoginCommand, TimeInterval) async throws -> String
+    typealias LoginShellPathProvider = @Sendable () -> [String]?
 
     private static let liveExecutor: Executor = { command, timeout in
         try await Self.executeProcess(command: command, timeout: timeout)
@@ -70,27 +71,45 @@ public struct DefaultCodexLoginRunner: CodexLoginRunner, @unchecked Sendable {
 
     private let fileManager: FileManager
     private let executor: Executor
+    private let loginShellPathProvider: LoginShellPathProvider
 
     public init(fileManager: FileManager = .default) {
-        self.init(fileManager: fileManager, executor: Self.liveExecutor)
+        self.init(
+            fileManager: fileManager,
+            executor: Self.liveExecutor,
+            loginShellPathProvider: {
+                CodexLoginShellPathCapturer.capture()
+            })
     }
 
-    public init(
+    init(
         fileManager: FileManager = .default,
-        executor: @escaping Executor)
+        executor: @escaping Executor,
+        loginShellPathProvider: @escaping LoginShellPathProvider)
     {
         self.fileManager = fileManager
         self.executor = executor
+        self.loginShellPathProvider = loginShellPathProvider
     }
 
     public func login(request: CodexLoginRequest) async throws -> CodexLoginResult {
         try request.scope.ensureHomeExists(fileManager: self.fileManager)
         try self.persistManagedConfig(at: request.scope.configFileURL)
 
-        let environment = request.scope.environment(base: request.baseEnvironment)
+        let loginPATH = self.loginShellPathProvider()
+        var environment = request.scope.environment(base: request.baseEnvironment)
+        environment["PATH"] = CodexCLIPathResolver.effectivePATH(env: environment, loginPATH: loginPATH)
+        guard let executable = CodexCLIPathResolver.resolveCodexBinary(
+            env: environment,
+            loginPATH: loginPATH,
+            fileManager: self.fileManager)
+        else {
+            throw CodexLoginRunnerError.missingBinary
+        }
+
         let command = CodexLoginCommand(
             arguments: [
-                "codex",
+                executable,
                 "-c",
                 #"cli_auth_credentials_store="file""#,
                 "login",
@@ -160,14 +179,10 @@ public struct DefaultCodexLoginRunner: CodexLoginRunner, @unchecked Sendable {
         }
 
         let output = self.readCombinedOutput(stdout: stdout, stderr: stderr)
-        switch process.terminationStatus {
-        case 0:
+        if process.terminationStatus == 0 {
             return output
-        case 127:
-            throw CodexLoginRunnerError.missingBinary
-        default:
-            throw CodexLoginRunnerError.failed(status: process.terminationStatus, output: output)
         }
+        throw CodexLoginRunnerError.failed(status: process.terminationStatus, output: output)
     }
 
     private static func wait(for process: Process, timeout: TimeInterval) async -> Bool {

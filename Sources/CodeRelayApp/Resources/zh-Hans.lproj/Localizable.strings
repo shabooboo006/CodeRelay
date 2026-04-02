@@ -2,6 +2,29 @@
 "app.language.option.zh-Hans" = "简体中文";
 "app.language.option.en" = "English";
 
+"setup.window.title" = "CodeRelay 初始设置";
+"setup.title" = "设置 CodeRelay";
+"setup.subtitle" = "先添加第一个托管 Codex 账号。完成后，日常使用将转到菜单栏。";
+"setup.empty.title" = "还没有托管账号。";
+"setup.empty.subtitle" = "先在这里添加第一个账号。接入完成后，从菜单栏图标打开 CodeRelay。";
+
+"manage.window.title" = "管理账号";
+"manage.subtitle" = "查看账号、刷新用量，并调整 CodeRelay 当前使用的托管账号。";
+
+"menu.header.noAccounts" = "没有托管账号";
+"menu.detail.setupRequired" = "先打开设置并添加第一个托管 Codex 账号。";
+"menu.detail.activeAndLive" = "已在 CodeRelay 中设为当前，并与当前 Codex 登录一致。";
+"menu.detail.activeOnly" = "已在 CodeRelay 中设为当前。";
+"menu.detail.liveOnly" = "与当前 Codex 登录一致。";
+"menu.detail.fiveHourRemaining" = "5 小时剩余：%@";
+"menu.detail.weeklyRemaining" = "每周剩余：%@";
+"menu.detail.status" = "状态：%@";
+"menu.detail.lastRefreshed" = "上次刷新：%@";
+"menu.action.openSetup" = "打开设置…";
+"menu.action.switchActive" = "切换当前账号";
+"menu.action.manageAccounts" = "管理账号…";
+"menu.action.quit" = "退出 CodeRelay";
+
 "accounts.title" = "托管 Codex 账号";
 "accounts.subtitle" = "在当前界面中管理账号、刷新用量并查看可用性。";
 "accounts.action.refreshUsage" = "刷新用量";

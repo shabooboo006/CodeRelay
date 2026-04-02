@@ -1,20 +1,20 @@
+import AppKit
 import SwiftUI
 
 @main
 struct CodeRelayApp: App {
-    private let container: AppContainer
-    @StateObject private var feature: AccountsFeature
+    @NSApplicationDelegateAdaptor(CodeRelayAppDelegate.self) private var appDelegate
+    private let runtime: CodeRelayRuntime
 
     init() {
-        let container = AppContainer()
-        self.container = container
-        self._feature = StateObject(wrappedValue: container.makeAccountsFeature())
+        let runtime = CodeRelayRuntime()
+        self.runtime = runtime
+        CodeRelayRuntimeStore.shared = runtime
     }
 
     var body: some Scene {
-        WindowGroup {
-            AccountsView(feature: self.feature)
-                .frame(minWidth: 720, minHeight: 480)
+        Settings {
+            EmptyView()
         }
     }
 }

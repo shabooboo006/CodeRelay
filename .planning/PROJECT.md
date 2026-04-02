@@ -20,6 +20,8 @@ Keep a macOS developer continuously productive in Codex by making account exhaus
 
 - [ ] User can add, inspect, and manage multiple Codex accounts inside one macOS app.
 - [ ] User can see current Codex 5-hour sliding-window usage, weekly usage, and reset timing for the active account.
+- [ ] User sees a recognizable CodeRelay app icon in the packaged macOS app and release artifacts.
+- [ ] User can use the current app surface in English and Simplified Chinese without mixed-language primary flows.
 - [ ] User can define a low-usage warning threshold and receive a warning before an account is effectively exhausted.
 - [ ] User can confirm a one-click switch into another managed Codex account with enough remaining usage.
 - [ ] User can switch accounts with automatic shutdown and relaunch of the target Codex CLI workflow, then attempt best-effort conversation resume when possible.
@@ -47,6 +49,7 @@ Problem background:
 Product expectations gathered so far:
 
 - The UI and implementation quality should take inspiration from CodexBar.
+- The initial release should feel ship-ready enough to include a real app icon and bilingual English/Simplified Chinese copy.
 - The provider abstraction should be collapsed to Codex only.
 - The switching engine should reuse or mirror the proven config-handling approach from cc-switch where appropriate.
 - When switching, the app should tell the user what it will close and relaunch, then refresh usage state after the target account becomes active.
@@ -73,6 +76,8 @@ Product expectations gathered so far:
 | Ship warning-first account switching instead of silent auto-switching | The user wants control over when to leave the current account after being warned | — Pending |
 | Collapse the provider model to Codex-only for v1 | Narrow scope improves clarity, reduces technical drag, and aligns with the actual job to be done | — Pending |
 | Deliver Codex CLI continuity before Codex App automation | CLI capabilities are inspectable and available today; Codex App automation should be validated separately instead of blocking v1 | — Pending |
+| Insert Phase 02.1 for app icon and multilingual support before Threshold Warnings | The user explicitly reprioritized release identity and bilingual usability ahead of new warning logic | Active |
+| Keep `CodeRelay` as the unlocalized product name while localizing user-facing copy through shared resources | This preserves brand consistency and avoids per-view ad hoc translation logic | Active |
 
 ## Evolution
 
@@ -92,4 +97,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-01 after initialization*
+*Last updated: 2026-04-02 after inserting Phase 02.1*

@@ -4,33 +4,33 @@ milestone: v1.0
 milestone_name: milestone
 status: verifying
 stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-04-01T19:02:05.081Z"
-last_activity: 2026-04-01
+last_updated: "2026-04-02T00:56:06Z"
+last_activity: 2026-04-02
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 2
   total_plans: 6
   completed_plans: 6
-  percent: 83
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Keep a macOS developer continuously productive in Codex by making account exhaustion visible early and account switching fast, explicit, and low-friction.
-**Current focus:** Phase 02 — usage-monitoring-readiness
+**Current focus:** Close Phase 02 verification, then execute planned Phase 02.1 — app-icon-multilingual-support
 
 ## Current Position
 
-Phase: 02 (usage-monitoring-readiness) — EXECUTING
+Phase: 02 (usage-monitoring-readiness) — VERIFYING
 Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-04-01
+Status: Phase 02 is ready to close, and Phase 02.1 is now planned as the next priority
+Last activity: 2026-04-02
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -74,6 +74,11 @@ Recent decisions affecting current work:
 - [Phase 02-usage-monitoring-readiness]: Preserve cached windows as explicit .cache/.stale snapshots when refresh fails, but surface missing credentials without cache as unknown rather than fabricated usage.
 - [Phase 02]: Persist unknown and error refresh results as nil-window snapshots so the accounts UI can render honest status without hiding rows.
 - [Phase 02]: Keep manual refresh messaging binary: all-fresh success versus stale/error completion, with no warning or switching copy in Phase 2.
+- [Phase 02.1]: Prioritize a real app icon and bilingual English/Simplified Chinese UI support before threshold warnings.
+
+### Roadmap Evolution
+
+- Phase 02.1 inserted after Phase 2: App Icon & Multilingual Support (URGENT)
 
 ### Pending Todos
 
