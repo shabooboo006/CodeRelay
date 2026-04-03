@@ -54,11 +54,20 @@ swift run CodeRelayApp
 
 ## 打包发布
 
-如果需要构建可分发的 macOS 应用及压缩包：
+如果只是构建本地 ad-hoc 包：
 
 ```bash
 zsh ./scripts/package_macos_release.sh
 ```
+
+如果要构建正式分发用的 Developer ID 签名 + notarization 版本：
+
+```bash
+NOTARYTOOL_PROFILE=CodeRelayNotary \
+zsh ./scripts/sign_and_notarize_macos_release.sh
+```
+
+这个正式发布脚本默认只产出适合 GitHub Release 的 `zip + dmg`。如果你还需要签名安装包，再显式覆盖 `PACKAGE_FORMATS=\"zip pkg dmg\"`。
 
 产物会输出到 `dist/`：
 
@@ -67,7 +76,18 @@ zsh ./scripts/package_macos_release.sh
 - `CodeRelay-<VERSION>.pkg`
 - `CodeRelay-<VERSION>.dmg`
 
-默认情况下，这些产物只会是未签名或 ad-hoc 签名版本。若要正式分发，还需要补充 Developer ID 签名与 notarization 流程。
+正式发布前需要准备：
+
+- 登录钥匙串里的 `Developer ID Application` 证书
+- 登录钥匙串里的 `Developer ID Installer` 证书
+- `xcrun notarytool` 的 keychain profile，例如 `CodeRelayNotary`
+
+安全说明：
+
+- 发布脚本只会从本机钥匙串读取签名证书，并从已经存在的 `notarytool` keychain profile 读取 notarization 凭据
+- 仓库和 GitHub Release 中不会保存 Apple 私钥、`.p8` 文件、导出的证书或账号密钥材料
+
+默认的本地打包脚本仍然使用 ad-hoc 签名。notarized 包装脚本会自动切到 Developer ID 签名，并把 app/pkg/dmg 提交给 Apple、staple ticket，最后再用 `codesign` 和 `spctl` 验证最终 app。
 
 ## 工作方式
 

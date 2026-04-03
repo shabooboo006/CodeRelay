@@ -55,11 +55,20 @@ swift run CodeRelayApp
 
 ## Release Packaging
 
-To build a distributable macOS app bundle plus archive formats:
+For a local ad-hoc bundle plus archive formats:
 
 ```bash
 zsh ./scripts/package_macos_release.sh
 ```
+
+For a production Developer ID signed + notarized release:
+
+```bash
+NOTARYTOOL_PROFILE=CodeRelayNotary \
+zsh ./scripts/sign_and_notarize_macos_release.sh
+```
+
+That release wrapper produces the GitHub-facing `zip` + `dmg` set by default. If you also need a signed installer package, override `PACKAGE_FORMATS="zip pkg dmg"` explicitly.
 
 Artifacts are written to `dist/`:
 
@@ -68,7 +77,18 @@ Artifacts are written to `dist/`:
 - `CodeRelay-<VERSION>.pkg`
 - `CodeRelay-<VERSION>.dmg`
 
-Packaging is unsigned or ad-hoc signed by default. Developer ID signing and notarization need to be added separately for production distribution.
+Production release prerequisites:
+
+- `Developer ID Application` certificate in your login keychain
+- `Developer ID Installer` certificate in your login keychain
+- `xcrun notarytool` keychain profile, for example `CodeRelayNotary`
+
+Security note:
+
+- the release scripts read signing identities from your local keychain and read notarization credentials from an existing `notarytool` keychain profile
+- no Apple private keys, `.p8` files, exported certificates, or account secrets are stored in this repository or embedded into GitHub release metadata
+
+The local packaging script stays ad-hoc by default. The notarized wrapper script switches signing to Developer ID, submits the app/pkg/dmg to Apple, staples the tickets, and validates the final app with `codesign` and `spctl`.
 
 ## How It Works
 

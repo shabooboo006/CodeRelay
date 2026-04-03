@@ -1,4 +1,8 @@
 .DS_Store
 .build/
 dist/
-
+AuthKey_*.p8
+*.p12
+*.cer
+*.developerprofile
+*.mobileprovision
