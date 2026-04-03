@@ -14,8 +14,8 @@ ICON_BUILD_SCRIPT="$ROOT_DIR/scripts/build_icon.sh"
 ICON_ICNS_PATH="$ROOT_DIR/Packaging/macOS/Icon.icns"
 PRODUCT_NAME="CodeRelayApp"
 APP_NAME="CodeRelay"
-VERSION="${VERSION:-0.1.0-alpha.5}"
-BUILD_NUMBER="${BUILD_NUMBER:-5}"
+VERSION="${VERSION:-0.1.0-alpha.6}"
+BUILD_NUMBER="${BUILD_NUMBER:-6}"
 SIGNING_MODE="${SIGNING_MODE:-adhoc}"
 APP_SIGN_IDENTITY="${APP_SIGN_IDENTITY:-}"
 KEYCHAIN_PATH="${KEYCHAIN_PATH:-}"
@@ -106,9 +106,17 @@ chmod +x "$MACOS_DIR/$PRODUCT_NAME"
 
 cp "$ICON_ICNS_PATH" "$RESOURCES_DIR/Icon.icns"
 
-find "$BIN_DIR" -maxdepth 1 -name '*.bundle' -type d -print0 | while IFS= read -r -d '' bundle_path; do
-  cp -R "$bundle_path" "$RESOURCES_DIR/$(basename "$bundle_path")"
-done
+copied_resource_bundle=0
+while IFS= read -r -d '' bundle_path; do
+  bundle_name="$(basename "$bundle_path")"
+  cp -R "$bundle_path" "$RESOURCES_DIR/$bundle_name"
+  copied_resource_bundle=1
+done < <(find "$BIN_DIR" -maxdepth 1 -name '*.bundle' -type d -print0)
+
+if [[ "$copied_resource_bundle" -eq 0 ]]; then
+  info "ERROR: SwiftPM did not emit a resource bundle for $PRODUCT_NAME in $BIN_DIR"
+  exit 1
+fi
 
 sed \
   -e "s/__VERSION__/$VERSION/g" \
